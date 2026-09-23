@@ -128,7 +128,7 @@
 const { useState, useEffect, useRef } = React;
 
 const SUPABASE_URL = 'https://mhzeupcudwwlgaedsccoc.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_LZ5_gFUB6e12fuOrfkXw2Q_AOlHBDos';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oenVlcGN1ZGR3bGdhZWRzY29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMDcxODYsImV4cCI6MjEwNTY4MzE4Nn0.WZnqULNzcj7SiGmrSbIvajyP5v8spMU8HGbvWUTocXU';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const RACAS_DB = {
@@ -163,7 +163,6 @@ const calcularStatusVacina = (dataAplicacao) => {
   return { label: 'Vencida', pillBg: '#fee2e2', pillText: '#b91c1c' };
 };
 
-// LANDING
 const LandingPage = ({ onLoginClick, onRegisterClick }) => (
   <div style={{backgroundColor:'#faf6ec', minHeight:'100vh'}}>
     <nav className="px-6 py-5">
@@ -211,7 +210,6 @@ const LandingPage = ({ onLoginClick, onRegisterClick }) => (
   </div>
 );
 
-// LOGIN
 const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   const [modo, setModo] = useState(initialRegister ? 'register' : 'login');
   const [form, setForm] = useState({ nome: '', email: '', senha: '', pin: '' });
@@ -375,7 +373,6 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   );
 };
 
-// PIN SCREEN
 const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
   const [pin, setPin] = useState(['','','','']);
   const [erro, setErro] = useState('');
@@ -427,7 +424,6 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
   );
 };
 
-// NAVBAR
 const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
   <nav className="sticky top-0 z-40 border-b border-gray-200" style={{backgroundColor:'#faf6ec'}}>
     <div className="mobile-container px-4 py-3 flex justify-between items-center">
@@ -447,7 +443,6 @@ const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
   </nav>
 );
 
-// PERFIL
 const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   const [form, setForm] = useState(user);
   const [salvo, setSalvo] = useState(false);
@@ -504,7 +499,6 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   );
 };
 
-// DASHBOARD
 const Dashboard = ({ user, pets, orders, onOpenPet, onNewPet, onVerPet, carregando }) => {
   const petsDoUsuario = pets.filter(p => p.tutor_id === user.id);
   const temCombo1 = (petId) => orders.some(o => o.pet_id===petId && o.tipo==='combo1' && o.status==='pago');
@@ -546,7 +540,6 @@ const Dashboard = ({ user, pets, orders, onOpenPet, onNewPet, onVerPet, carregan
   );
 };
 
-// MODO APRESENTAÇÃO
 const ModoApresentacao = ({ pet, tutor, onClose }) => {
   const [toques, setToques] = useState(0);
   const timerRef = useRef(null);
@@ -574,7 +567,6 @@ const ModoApresentacao = ({ pet, tutor, onClose }) => {
   );
 };
 
-// RG DOCUMENTO
 const RGDocumento = ({ pet, tutor }) => {
   const Campo = ({ label, valor }) => (
     <div className="documento-field">
@@ -617,7 +609,6 @@ const RGDocumento = ({ pet, tutor }) => {
   );
 };
 
-// CARTEIRA DE VACINAS
 const CarteiraVacinas = ({ pet }) => {
   const vacinas = pet.vaccinations || [];
   const saude = pet.saude || {};
@@ -665,7 +656,6 @@ const CarteiraVacinas = ({ pet }) => {
   );
 };
 
-// CERTIDÃO
 const Certidao = ({ pet, tutor }) => {
   const historia = buscarHistoriaRaca(pet.raca);
   const dataReg = pet.data_registro ? new Date(pet.data_registro).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
@@ -715,7 +705,6 @@ const Certidao = ({ pet, tutor }) => {
   );
 };
 
-// PET FORM
 const PetForm = ({ user, onSaved, onCancel }) => {
   const [form, setForm] = useState({
     nome:'', raca:'', porte:'', idade:'', data_nascimento:'', foto:'',
@@ -879,7 +868,6 @@ const PetForm = ({ user, onSaved, onCancel }) => {
   );
 };
 
-// PRÉVIA
 const PreviewScreen = ({ user, pets, onBack, onIrParaPagamento }) => {
   const petsDoUsuario = pets.filter(p => p.tutor_id === user.id);
   const [petSel, setPetSel] = useState(petsDoUsuario[0] || null);
@@ -911,7 +899,6 @@ const PreviewScreen = ({ user, pets, onBack, onIrParaPagamento }) => {
   );
 };
 
-// PET DETAIL
 const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, initialTab }) => {
   const [aba, setAba] = useState(initialTab || 'documentos');
   const [cupom, setCupom] = useState('');
@@ -1076,7 +1063,6 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, in
   );
 };
 
-// PÚBLICA
 const PublicPetView = ({ publicId }) => {
   const [pet, setPet] = useState(null);
   const [tutor, setTutor] = useState(null);
@@ -1124,7 +1110,6 @@ const PublicPetView = ({ publicId }) => {
   );
 };
 
-// ADMIN
 const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [aba, setAba] = useState('pedidos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
@@ -1265,7 +1250,6 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   );
 };
 
-// APP
 const App = () => {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('landing');
@@ -1279,11 +1263,11 @@ const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [registerMode, setRegisterMode] = useState(false);
   const [needPin, setNeedPin] = useState(false);
+  const [pinUser, setPinUser] = useState(null);
   const [verPet, setVerPet] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [msgPagamento, setMsgPagamento] = useState(null);
 
-  // Carregar dados iniciais
   const carregarDados = async () => {
     const { data: petsData } = await sb.from('pets').select('*').order('id', { ascending: false });
     const { data: ordersData } = await sb.from('pedidos').select('*').order('id', { ascending: false });
@@ -1318,7 +1302,7 @@ const App = () => {
         const s = JSON.parse(saved);
         sb.from('tutores').select('*').eq('id', s.userId).maybeSingle().then(({ data }) => {
           if (data) {
-            if (data.pin) setNeedPin(true);
+            if (data.pin) { setNeedPin(true); setPinUser(data); }
             else { setUser(data); setView('dashboard'); }
           }
         });
@@ -1339,22 +1323,17 @@ const App = () => {
   const handleUnlockPin = async () => {
     const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
     const { data } = await sb.from('tutores').select('*').eq('id', saved.userId).maybeSingle();
-    if (data) { setUser(data); setView('dashboard'); setNeedPin(false); }
+    if (data) { setUser(data); setView('dashboard'); setNeedPin(false); setPinUser(null); }
   };
 
   const handleUsarSenha = () => {
     localStorage.removeItem('rgpet_sessao');
-    setNeedPin(false); setUser(null); setView('login');
+    setNeedPin(false); setUser(null); setPinUser(null); setView('login');
   };
 
   if (publicId) return <PublicPetView publicId={publicId} />;
 
-  if (needPin && !user) return <PinScreen onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} user={JSON.parse(localStorage.getItem('rgpet_sessao') ? '{}' : '{}')} />;
-  // fallback: se needPin mas sem user completo, recarrega
-  if (needPin && !user) {
-    const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
-    return <PinScreen onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} user={{ id: saved.userId, nome: 'Tutor', pin: '' }} />;
-  }
+  if (needPin && !user && pinUser) return <PinScreen user={pinUser} onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} />;
 
   if (!user) {
     if (view === 'landing') return <LandingPage onLoginClick={()=>{setRegisterMode(false);setView('login');}} onRegisterClick={()=>{setRegisterMode(true);setView('login');}} />;
