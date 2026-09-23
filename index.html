@@ -27,7 +27,6 @@
   .whitespace-nowrap { white-space: nowrap; }
   .grid-cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .grid-cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
-  .grid-cols-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
   .col-span-2 { grid-column: span 2 / span 2; }
   .w-2 { width: 8px; } .w-8 { width: 32px; } .w-9 { width: 36px; } .w-10 { width: 40px; }
   .w-12 { width: 48px; } .w-14 { width: 56px; } .w-16 { width: 64px; } .w-20 { width: 80px; }
@@ -138,7 +137,7 @@ const RACAS_DB = {
   'labrador': 'O Labrador Retriever é originário do Canadá. Criado para ajudar pescadores, ficou conhecido pela docilidade, inteligência e amor pela água.',
   'golden retriever': 'O Golden Retriever surgiu na Escócia no século XIX, criado para caçar aves aquáticas. É conhecido pela docilidade, inteligência e lealdade.',
   'pinscher': 'O Pinscher é de origem alemã. Apesar do tamanho pequeno, tem personalidade forte, é alerta, ativo e muito apegado ao tutor.',
-  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia.',
+  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família.',
   'pug': 'O Pug é originário da China, criado para ser cão de companhia da nobreza. É brincalhão, afetuoso e adora atenção.',
   'srd': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, geralmente mais resistentes a doenças, extremamente leais e cheios de personalidade.',
   'vira-lata': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, extremamente leais e cheios de personalidade.',
@@ -153,15 +152,12 @@ const RACAS_DB = {
 
 const normalizar = (s) => {
   if (!s) return '';
-  return s.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s\-_.]/g, '');
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-_.]/g, '');
 };
 
 const levenshtein = (a, b) => {
   const m = a.length, n = b.length;
-  if (m === 0) return n;
-  if (n === 0) return m;
+  if (m === 0) return n; if (n === 0) return m;
   const dp = [];
   for (let i = 0; i <= m; i++) { dp.push(new Array(n+1).fill(0)); dp[i][0] = i; }
   for (let j = 0; j <= n; j++) dp[0][j] = j;
@@ -178,15 +174,9 @@ const buscarHistoriaRaca = (raca) => {
   if (!raca) return null;
   const key = normalizar(raca);
   if (!key || key.length < 3) return null;
-  for (const k in RACAS_DB) {
-    if (key === normalizar(k)) return RACAS_DB[k];
-  }
-  for (const k in RACAS_DB) {
-    const kNorm = normalizar(k);
-    if (key.includes(kNorm) || kNorm.includes(key)) return RACAS_DB[k];
-  }
-  let melhor = null;
-  let melhorDist = Infinity;
+  for (const k in RACAS_DB) { if (key === normalizar(k)) return RACAS_DB[k]; }
+  for (const k in RACAS_DB) { const kNorm = normalizar(k); if (key.includes(kNorm) || kNorm.includes(key)) return RACAS_DB[k]; }
+  let melhor = null, melhorDist = Infinity;
   for (const k in RACAS_DB) {
     const kNorm = normalizar(k);
     const d = levenshtein(key, kNorm);
@@ -209,16 +199,11 @@ const PET_FICTICIO = {
   sexo: 'Macho', castrado: 'Sim', peso: '25 kg', cor_pelagem: 'Tricolor',
   idade: '5 anos', data_nascimento: '2020-03-15', local_nascimento: 'São Paulo - SP',
   pai: 'Não informado', mae: 'Não informada', registro_id: 'CL-000000-000',
-  tem_microchip: true, microchip: '000000000000000', foto: null,
-  is_lost: false,
+  tem_microchip: true, microchip: '000000000000000', foto: null, is_lost: false,
   saude: { doencas:'Nenhuma', alergias:'Nenhuma', medicamentos:'Nenhum', tipoSanguineo:'DEA 1.1', comportamento:'Dócil', observacoes:'Prévia do modelo — dados fictícios' },
   emergencia: { nome:'Maria Silva', telefone:'(11) 90000-0000', relacao:'Tutora' },
-  vaccinations: [
-    { id: 1, nome: 'V10', data: '2024-01-15' },
-    { id: 2, nome: 'Antirrábica', data: '2024-06-10' }
-  ]
+  vaccinations: [ { id: 1, nome: 'V10', data: '2024-01-15' }, { id: 2, nome: 'Antirrábica', data: '2024-06-10' } ]
 };
-
 const TUTOR_FICTICIO = { nome: 'Maria Silva', endereco: 'Rua Exemplo, 123', cidade: 'São Paulo', uf: 'SP', cep: '01000-000' };
 
 const LandingPage = ({ onLoginClick, onRegisterClick }) => (
@@ -775,12 +760,7 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
     if (!form.nome) { alert('Informe o nome do pet'); return; }
     setSalvando(true);
     if (emEdicao) {
-      const { data, error } = await sb.from('pets').update({
-        nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado,
-        peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento,
-        local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto,
-        tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas
-      }).eq('id', initialPet.id).select().single();
+      const { data, error } = await sb.from('pets').update({ nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas }).eq('id', initialPet.id).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
     } else {
@@ -957,54 +937,21 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
 
   const comprar = async () => {
     if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
-
     setProcessando(true);
     const base = settings.price_combo1;
     const valor = calcular(base);
     const orderId = Date.now();
-
-    // Cria o pedido pendente ANTES de ir pro Mercado Pago
-    const pedido = {
-      id: orderId,
-      pet_id: pet.id,
-      tutor_id: user.id,
-      tipo: 'combo1',
-      valor_base: base,
-      valor: valor,
-      status: 'pendente',
-      metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual',
-      cupom: cupomAplicado?.code || null
-    };
+    const pedido = { id: orderId, pet_id: pet.id, tutor_id: user.id, tipo: 'combo1', valor_base: base, valor: valor, status: 'pendente', metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual', cupom: cupomAplicado?.code || null };
     const { error: erroInsert } = await sb.from('pedidos').insert([pedido]);
     if (erroInsert) { alert('Erro ao registrar pedido: ' + erroInsert.message); setProcessando(false); return; }
-
     onRefresh();
-
     if (settings.payment_mode === 'auto') {
       try {
-        const resp = await fetch('https://rgpet.vercel.app/api/create-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            titulo: 'RG Pet — Combo 1 (RG + Carteirinha + Certidão)',
-            valor: valor,
-            petId: pet.id,
-            tipo: 'combo1',
-            orderId: orderId,
-            userEmail: user.email
-          })
-        });
+        const resp = await fetch('https://rgpet.vercel.app/api/create-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: 'RG Pet — Combo 1 (RG + Carteirinha + Certidão)', valor: valor, petId: pet.id, tipo: 'combo1', orderId: orderId, userEmail: user.email }) });
         const data = await resp.json();
-        if (data.init_point) {
-          window.location.href = data.init_point;
-        } else {
-          alert('Erro ao gerar pagamento: ' + (data.error || 'desconhecido'));
-          setProcessando(false);
-        }
-      } catch (err) {
-        alert('Erro de conexão: ' + err.message);
-        setProcessando(false);
-      }
+        if (data.init_point) { window.location.href = data.init_point; }
+        else { alert('Erro ao gerar pagamento: ' + (data.error || 'desconhecido')); setProcessando(false); }
+      } catch (err) { alert('Erro de conexão: ' + err.message); setProcessando(false); }
     } else {
       alert(`Pedido registrado! Valor: R$ ${valor.toFixed(2)}. Envie o comprovante do Pix no WhatsApp para liberar.`);
       setCupom(''); setCupomAplicado(null); setMostrarCupom(false);
@@ -1094,53 +1041,21 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
   const comprar = async (tipo) => {
     if (tipo === 'combo2' && !temCombo1) { alert('Adquira o Combo 1 antes do QR Code.'); return; }
     if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
-
     setProcessando(true);
     const base = tipo === 'combo1' ? settings.price_combo1 : settings.price_combo2;
     const valor = calcular(base);
     const orderId = Date.now();
-
-    const pedido = {
-      id: orderId,
-      pet_id: pet.id,
-      tutor_id: user.id,
-      tipo: tipo,
-      valor_base: base,
-      valor: valor,
-      status: 'pendente',
-      metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual',
-      cupom: cupomAplicado?.code || null
-    };
+    const pedido = { id: orderId, pet_id: pet.id, tutor_id: user.id, tipo: tipo, valor_base: base, valor: valor, status: 'pendente', metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual', cupom: cupomAplicado?.code || null };
     const { error: erroInsert } = await sb.from('pedidos').insert([pedido]);
     if (erroInsert) { alert('Erro ao registrar pedido: ' + erroInsert.message); setProcessando(false); return; }
-
     onRefresh();
-
     if (settings.payment_mode === 'auto') {
       try {
-        const resp = await fetch('https://rgpet.vercel.app/api/create-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            titulo: tipo === 'combo1' ? 'RG Pet — Combo 1 (RG + Carteirinha + Certidão)' : 'RG Pet — QR Code de Emergência',
-            valor: valor,
-            petId: pet.id,
-            tipo: tipo,
-            orderId: orderId,
-            userEmail: user.email
-          })
-        });
+        const resp = await fetch('https://rgpet.vercel.app/api/create-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: tipo === 'combo1' ? 'RG Pet — Combo 1 (RG + Carteirinha + Certidão)' : 'RG Pet — QR Code de Emergência', valor: valor, petId: pet.id, tipo: tipo, orderId: orderId, userEmail: user.email }) });
         const data = await resp.json();
-        if (data.init_point) {
-          window.location.href = data.init_point;
-        } else {
-          alert('Erro ao gerar pagamento: ' + (data.error || 'desconhecido'));
-          setProcessando(false);
-        }
-      } catch (err) {
-        alert('Erro de conexão: ' + err.message);
-        setProcessando(false);
-      }
+        if (data.init_point) { window.location.href = data.init_point; }
+        else { alert('Erro ao gerar pagamento: ' + (data.error || 'desconhecido')); setProcessando(false); }
+      } catch (err) { alert('Erro de conexão: ' + err.message); setProcessando(false); }
     } else {
       alert(`Pedido registrado! Valor: R$ ${valor.toFixed(2)}. Envie o comprovante do Pix no WhatsApp para liberar.`);
       setCupom(''); setCupomAplicado(null); setMostrarCupom(false);
@@ -1267,27 +1182,70 @@ const PublicPetView = ({ publicId }) => {
   if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
   if (!pet || !tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Pet não encontrado.</div></div>;
 
+  const vacinas = pet.vaccinations || [];
+  const saude = pet.saude || {};
+  const emerg = pet.emergencia || {};
+
+  const vacinasStatus = vacinas.map(v => calcularStatusVacina(v.data));
+  const temVencida = vacinasStatus.some(s => s.label === 'Vencida');
+  const temAtencao = vacinasStatus.some(s => s.label === 'Atenção');
+  const vacinasEmDia = vacinas.length > 0 && !temVencida && !temAtencao;
+  const temInfoSaude = saude.doencas || saude.alergias || saude.medicamentos || saude.tipoSanguineo || saude.comportamento || saude.observacoes;
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
       <div className="w-full max-w-sm">
-        {pet.is_lost && (
-          <div className="text-white text-center p-3 rounded-xl mb-3" style={{backgroundColor:'#dc2626'}}>
-            <div className="font-bold text-base">⚠ ESTE PET ESTÁ PERDIDO</div>
-            <div className="text-xs mt-1">Se você o encontrou, entre em contato imediatamente.</div>
+        <div className="card" style={{border:'4px solid #1a3c2e'}}>
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-3" style={{backgroundColor:'#eab308'}}>🐾</div>
+
+            {pet.is_lost && (
+              <div className="text-white text-center p-4 rounded-xl mb-4" style={{backgroundColor:'#dc2626'}}>
+                <div className="font-extrabold text-lg tracking-wider mb-2">🐾 ESTOU PERDIDO</div>
+                <div className="text-sm font-semibold leading-snug">Se você me encontrou,<br/>avise meus pais</div>
+                <div className="text-[11px] mt-2 leading-snug" style={{color:'#fee2e2'}}>Tenho problemas de saúde e preciso voltar pra casa</div>
+              </div>
+            )}
+
+            <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-2" style={{border:'4px solid #eab308'}}>
+              {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'32px',color:'#d1d5db'}}>🐾</div>}
+            </div>
+            <div className="font-bold text-base">{pet.nome}</div>
+            <div className="text-xs text-gray-500">{pet.raca||'—'} • {pet.porte||'—'} {pet.sexo?'• '+pet.sexo:''}</div>
+            {pet.cor_pelagem && <div className="text-xs text-gray-500 mt-0.5">Cor: {pet.cor_pelagem}</div>}
           </div>
-        )}
-        <div className="card text-center" style={{border:'4px solid #1a3c2e'}}>
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-2" style={{backgroundColor:'#eab308'}}>🐾</div>
-          <h1 className="text-lg font-bold mb-1">Pet Encontrado!</h1>
-          <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-2" style={{border:'4px solid #eab308'}}>
-            {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'32px',color:'#d1d5db'}}>🐾</div>}
-          </div>
-          <div className="font-bold text-base">{pet.nome}</div>
-          <div className="text-xs text-gray-500">{pet.raca||'—'} • {pet.porte||'—'}</div>
+
+          {vacinas.length > 0 && (
+            <div className="mt-3 p-2 rounded-lg text-center text-xs font-semibold" style={{backgroundColor: vacinasEmDia ? '#dcfce7' : '#fee2e2', color: vacinasEmDia ? '#15803d' : '#b91c1c'}}>
+              {vacinasEmDia ? '💉 Vacinas em dia' : (temVencida ? '⚠ Vacinas: tem vacina vencida' : '⚠ Vacinas: atenção')}
+            </div>
+          )}
+
+          {temInfoSaude && (
+            <div className="mt-3 rounded-lg p-3" style={{backgroundColor:'#faf6ec', border:'1px solid #e8dfc8'}}>
+              <div className="text-[10px] tracking-[0.2em] font-bold mb-2" style={{color:'#8b7a4d'}}>SAÚDE DO PET</div>
+              <div className="space-y-1 text-xs">
+                {saude.comportamento && <div><span className="text-gray-500">Comportamento:</span> <strong>{saude.comportamento}</strong></div>}
+                {saude.doencas && <div><span className="text-gray-500">Doenças/Condições:</span> {saude.doencas}</div>}
+                {saude.alergias && <div><span className="text-gray-500">Alergias:</span> {saude.alergias}</div>}
+                {saude.medicamentos && <div><span className="text-gray-500">Medicamentos:</span> {saude.medicamentos}</div>}
+                {saude.tipoSanguineo && <div><span className="text-gray-500">Tipo sanguíneo:</span> {saude.tipoSanguineo}</div>}
+                {saude.observacoes && <div><span className="text-gray-500">Obs:</span> {saude.observacoes}</div>}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2 mt-4">
             <a href={`tel:${tutor.telefone}`} className="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm" style={{display:'flex'}}>📞 Ligar para o tutor</a>
             <a href={`https://wa.me/55${(tutor.whatsapp||'').replace(/\D/g,'')}`} target="_blank" className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-white text-sm" style={{backgroundColor:'#25D366', display:'flex'}}>💬 Chamar no WhatsApp</a>
           </div>
+
+          {(emerg.nome || emerg.telefone) && (
+            <div className="mt-3 pt-3 border-t text-xs text-gray-600 text-center leading-relaxed">
+              Não conseguiu falar com o tutor?<br/>
+              Ligue para <strong>{emerg.nome}</strong>{emerg.relacao ? ` (${emerg.relacao})` : ''}: <strong>{emerg.telefone}</strong>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1344,13 +1302,11 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
             <div><div className="font-bold text-sm">Modo de pagamento</div><div className="text-xs text-gray-500">Atual: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div></div>
             <button onClick={toggleMode} className="px-4 py-2 rounded-xl text-white font-semibold text-xs" style={{backgroundColor: settings.payment_mode==='auto' ? '#16a34a' : '#ca8a04'}}>→ {settings.payment_mode==='auto'?'Manual':'Auto'}</button>
           </div>
-
           <div className="flex gap-1 mb-3 flex-wrap">
             {[['todos','Todos'],['pagos','Pagos'],['pendentes','Pendentes']].map(([k,label]) => (
               <button key={k} onClick={()=>setFiltroPedidos(k)} className="px-3 py-1.5 rounded-full text-xs font-semibold" style={filtroPedidos===k?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>{label}</button>
             ))}
           </div>
-
           <h2 className="font-bold text-sm mb-2">Pedidos ({pedidosFiltrados.length})</h2>
           {pedidosFiltrados.length === 0 ? (
             <div className="card text-xs text-gray-500 text-center">Nenhum pedido.</div>
@@ -1368,9 +1324,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                         {t?.telefone && <div className="text-xs text-gray-500">📞 {t.telefone}</div>}
                         <div className="text-xs">{o.tipo==='combo1'?'Combo 1':'Combo 2 (QR)'} • R$ {Number(o.valor).toFixed(2)}</div>
                         <div className="text-[10px] mt-1">
-                          <span className={o.status==='pago'?'text-green-700':'text-yellow-700'}>
-                            {o.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}
-                          </span>
+                          <span className={o.status==='pago'?'text-green-700':'text-yellow-700'}>{o.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</span>
                         </div>
                       </div>
                     </div>
@@ -1492,13 +1446,8 @@ const App = () => {
     const pagamento = params.get('pagamento');
     if (p) setPublicId(p);
     if (params.get('admin') === '1') setIsAdmin(true);
-    if (pagamento === 'sucesso') {
-      setMsgPagamento({ tipo: 'sucesso', texto: 'Pagamento aprovado! Seus documentos foram liberados.' });
-      setTimeout(() => setMsgPagamento(null), 8000);
-    } else if (pagamento === 'falha' || pagamento === 'pendente') {
-      setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' });
-      setTimeout(() => setMsgPagamento(null), 8000);
-    }
+    if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Pagamento aprovado! Seus documentos foram liberados.' }); setTimeout(() => setMsgPagamento(null), 8000); }
+    else if (pagamento === 'falha' || pagamento === 'pendente') { setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     carregarDados();
     const saved = localStorage.getItem('rgpet_sessao');
     if (saved) {
