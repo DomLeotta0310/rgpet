@@ -131,23 +131,23 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const RACAS_DB = {
-  'bulldog inglês': 'O Bulldog Inglês surgiu na Inglaterra e teve origem ligada a antigos cães de trabalho e de arena, atividades proibidas em 1835. A partir daí, criadores passaram a selecionar exemplares de temperamento dócil e companheiro, dando origem ao cão de estimação equilibrado e afetuoso que conhecemos hoje.',
-  'bulldog': 'O Bulldog Inglês surgiu na Inglaterra. É um símbolo tradicional da cultura britânica e, apesar da aparência robusta, é conhecido por ser calmo, apegado à família e tolerante com crianças.',
-  'poodle': 'O Poodle é originário da Alemanha, conhecido como "cão d\'água", mas foi na França que ganhou popularidade. Inteligente, elegante e muito apegado ao tutor.',
+  'bulldog inglês': 'O Bulldog Inglês surgiu na Inglaterra e teve origem ligada a antigos cães de trabalho e de arena, atividades proibidas em 1835.',
+  'bulldog': 'O Bulldog Inglês surgiu na Inglaterra. É um símbolo tradicional da cultura britânica.',
+  'poodle': 'O Poodle é originário da Alemanha, mas foi na França que ganhou popularidade. Inteligente, elegante e muito apegado ao tutor.',
   'labrador': 'O Labrador Retriever é originário do Canadá. Criado para ajudar pescadores, ficou conhecido pela docilidade, inteligência e amor pela água.',
   'golden retriever': 'O Golden Retriever surgiu na Escócia no século XIX, criado para caçar aves aquáticas. É conhecido pela docilidade, inteligência e lealdade.',
   'pinscher': 'O Pinscher é de origem alemã. Apesar do tamanho pequeno, tem personalidade forte, é alerta, ativo e muito apegado ao tutor.',
-  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família.',
+  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada em palácios chineses. Conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família.',
   'pug': 'O Pug é originário da China, criado para ser cão de companhia da nobreza. É brincalhão, afetuoso e adora atenção.',
-  'srd': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, geralmente mais resistentes a doenças, extremamente leais e cheios de personalidade.',
+  'srd': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, geralmente mais resistentes a doenças, extremamente leais.',
   'vira-lata': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, extremamente leais e cheios de personalidade.',
   'pastor alemão': 'O Pastor Alemão é originário da Alemanha, criado no fim do século XIX para pastoreio. É inteligente, leal, corajoso e versátil.',
   'rottweiler': 'O Rottweiler é de origem alemã. É forte, leal e protetor.',
   'yorkshire': 'O Yorkshire Terrier surgiu na Inglaterra, criado para caçar ratos nas fábricas. É corajoso, esperto e cheio de energia.',
   'maltês': 'O Maltês é uma das raças mais antigas do mundo, originária da Ilha de Malta. É dócil, apegado, inteligente e adora colo.',
-  'persa': 'O Persa é uma das raças de gato mais antigas e conhecidas do mundo, originária da Pérsia (atual Irã). É conhecido pela pelagem longa e sedosa, temperamento calmo e apegado aos donos.',
-  'siamês': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). É conhecido pelos olhos azuis e pelagem clara com extremidades escuras. Muito comunicativo e apegado ao tutor.',
-  'angorá': 'O Angorá é uma raça de gato originária da Turquia. É conhecido pela pelagem semilonga e sedosa, olhos geralmente azuis ou âmbar e temperamento ativo e carinhoso.',
+  'persa': 'O Persa é uma das raças de gato mais antigas e conhecidas do mundo, originária da Pérsia (atual Irã).',
+  'siamês': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). Muito comunicativo e apegado ao tutor.',
+  'angorá': 'O Angorá é uma raça de gato originária da Turquia. Conhecido pela pelagem semilonga e sedosa.',
 };
 
 const normalizar = (s) => {
@@ -200,7 +200,7 @@ const PET_FICTICIO = {
   idade: '5 anos', data_nascimento: '2020-03-15', local_nascimento: 'São Paulo - SP',
   pai: 'Não informado', mae: 'Não informada', registro_id: 'CL-000000-000',
   tem_microchip: true, microchip: '000000000000000', foto: null, is_lost: false,
-  saude: { doencas:'Nenhuma', alergias:'Nenhuma', medicamentos:'Nenhum', tipoSanguineo:'DEA 1.1', comportamento:'Dócil', observacoes:'Prévia do modelo — dados fictícios' },
+  saude: { doencas:'Nenhuma', alergias:'Nenhuma', medicamentos:'Nenhum', tipoSanguineo:'DEA 1.1', comportamento:'Dócil', observacoes:'Prévia do modelo' },
   emergencia: { nome:'Maria Silva', telefone:'(11) 90000-0000', relacao:'Tutora' },
   vaccinations: [ { id: 1, nome: 'V10', data: '2024-01-15' }, { id: 2, nome: 'Antirrábica', data: '2024-06-10' } ]
 };
@@ -409,9 +409,7 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
   const [erro, setErro] = useState('');
   const [tentativas, setTentativas] = useState(0);
   const inputsRef = [useRef(), useRef(), useRef(), useRef()];
-
   useEffect(() => { setTimeout(()=>inputsRef[0].current && inputsRef[0].current.focus(), 100); }, []);
-
   const handleChange = (idx, val) => {
     const v = val.replace(/\D/g,'').slice(-1);
     const novo = [...pin]; novo[idx] = v; setPin(novo);
@@ -428,7 +426,6 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
       setTimeout(()=>inputsRef[0].current && inputsRef[0].current.focus(), 100);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
       <div className="w-full max-w-sm text-center">
@@ -472,7 +469,6 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   const [salvo, setSalvo] = useState(false);
   const [pin, setPin] = useState(user.pin || '');
   const [pinSalvo, setPinSalvo] = useState(false);
-
   const salvar = async () => {
     const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep }).eq('id', user.id);
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
@@ -484,7 +480,6 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
     if (error) { alert('Erro: ' + error.message); return; }
     onUpdate({ ...form, pin }); setPinSalvo(true); setTimeout(()=>setPinSalvo(false), 2000);
   };
-
   return (
     <div className="mobile-container p-4">
       <h1 className="text-xl font-bold mb-1">Meus dados de tutor</h1>
@@ -920,21 +915,21 @@ const PreviewScreen = ({ onBack }) => {
   );
 };
 
-const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
+// ============================================================
+//  >>> CONTINUA NA PARTE 2 <<<
+// ============================================================
+  const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [mostrarCupom, setMostrarCupom] = useState(false);
   const [processando, setProcessando] = useState(false);
-
   const pedidosPet = orders.filter(o => o.pet_id === pet.id);
-
   const aplicarCupom = () => {
     const c = coupons.find(c => c.code.toLowerCase() === cupom.toLowerCase() && c.ativo);
     if (!c) { alert('Cupom inválido'); return; }
     setCupomAplicado(c); alert(`Cupom aplicado: ${c.desconto}% off!`);
   };
   const calcular = (base) => cupomAplicado ? +(base * (1 - cupomAplicado.desconto/100)).toFixed(2) : base;
-
   const comprar = async () => {
     if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
     setProcessando(true);
@@ -958,7 +953,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
       setProcessando(false);
     }
   };
-
   return (
     <div className="space-y-3">
       <div className="card text-center">
@@ -970,7 +964,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
           <div className="text-[10px] mt-1" style={{color:'#a16207'}}>Os dados abaixo são fictícios. Após o pagamento, os dados reais do seu pet aparecerão.</div>
         </div>
       </div>
-
       <div className="card">
         <div className="font-semibold text-sm mb-3">Escolha um plano</div>
         <div className="border rounded-lg p-3 flex justify-between items-center mb-2">
@@ -994,7 +987,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
         )}
         {cupomAplicado && <div className="text-xs text-green-700 mt-2 text-center">Cupom {cupomAplicado.code} ({cupomAplicado.desconto}% off)</div>}
       </div>
-
       {pedidosPet.length > 0 && (
         <div className="card">
           <div className="font-semibold text-sm mb-2">Seus pedidos</div>
@@ -1011,7 +1003,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
           </div>
         </div>
       )}
-
       <div className="card">
         <div className="text-xs font-bold mb-2" style={{color:'#8b7a4d'}}>PRÉVIA DO MODELO</div>
         <RGDocumento pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
@@ -1026,18 +1017,15 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [mostrarCupom, setMostrarCupom] = useState(false);
   const [processando, setProcessando] = useState(false);
-
   const temCombo1 = orders.some(o => o.pet_id===pet.id && o.tipo==='combo1' && o.status==='pago');
   const temCombo2 = orders.some(o => o.pet_id===pet.id && o.tipo==='combo2' && o.status==='pago');
   const pedidosPet = orders.filter(o => o.pet_id === pet.id);
-
   const aplicarCupom = () => {
     const c = coupons.find(c => c.code.toLowerCase() === cupom.toLowerCase() && c.ativo);
     if (!c) { alert('Cupom inválido'); return; }
     setCupomAplicado(c); alert(`Cupom aplicado: ${c.desconto}% off!`);
   };
   const calcular = (base) => cupomAplicado ? +(base * (1 - cupomAplicado.desconto/100)).toFixed(2) : base;
-
   const comprar = async (tipo) => {
     if (tipo === 'combo2' && !temCombo1) { alert('Adquira o Combo 1 antes do QR Code.'); return; }
     if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
@@ -1062,17 +1050,14 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
       setProcessando(false);
     }
   };
-
   const marcarPerdido = async () => { await sb.from('pets').update({ is_lost: true }).eq('id', pet.id); onRefresh(); };
   const marcarEmCasa = async () => { await sb.from('pets').update({ is_lost: false }).eq('id', pet.id); onRefresh(); };
-
   return (
     <div className="mobile-container p-4">
       <div className="flex justify-between items-center mb-3">
         <button onClick={onBack} className="text-sm text-gray-500">← Voltar</button>
         <button onClick={onEdit} className="text-sm font-semibold px-3 py-1.5 rounded-full" style={{backgroundColor:'#fffefb', color:'#1a3c2e', border:'1px solid #e8dfc8'}}>✏️ Editar pet</button>
       </div>
-
       {!temCombo1 ? (
         <>
           <div className="card mb-3 flex items-center gap-3">
@@ -1166,7 +1151,6 @@ const PublicPetView = ({ publicId }) => {
   const [pet, setPet] = useState(null);
   const [tutor, setTutor] = useState(null);
   const [carregando, setCarregando] = useState(true);
-
   useEffect(() => {
     (async () => {
       const { data: petData } = await sb.from('pets').select('*').eq('public_id', publicId).maybeSingle();
@@ -1178,27 +1162,22 @@ const PublicPetView = ({ publicId }) => {
       setCarregando(false);
     })();
   }, [publicId]);
-
   if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
   if (!pet || !tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Pet não encontrado.</div></div>;
-
   const vacinas = pet.vaccinations || [];
   const saude = pet.saude || {};
   const emerg = pet.emergencia || {};
-
   const vacinasStatus = vacinas.map(v => calcularStatusVacina(v.data));
   const temVencida = vacinasStatus.some(s => s.label === 'Vencida');
   const temAtencao = vacinasStatus.some(s => s.label === 'Atenção');
   const vacinasEmDia = vacinas.length > 0 && !temVencida && !temAtencao;
   const temInfoSaude = saude.doencas || saude.alergias || saude.medicamentos || saude.tipoSanguineo || saude.comportamento || saude.observacoes;
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
       <div className="w-full max-w-sm">
         <div className="card" style={{border:'4px solid #1a3c2e'}}>
           <div className="text-center">
             <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-3" style={{backgroundColor:'#eab308'}}>🐾</div>
-
             {pet.is_lost && (
               <div className="text-white text-center p-4 rounded-xl mb-4" style={{backgroundColor:'#dc2626'}}>
                 <div className="font-extrabold text-lg tracking-wider mb-2">🐾 ESTOU PERDIDO</div>
@@ -1206,7 +1185,6 @@ const PublicPetView = ({ publicId }) => {
                 <div className="text-[11px] mt-2 leading-snug" style={{color:'#fee2e2'}}>Tenho problemas de saúde e preciso voltar pra casa</div>
               </div>
             )}
-
             <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-2" style={{border:'4px solid #eab308'}}>
               {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'32px',color:'#d1d5db'}}>🐾</div>}
             </div>
@@ -1214,13 +1192,11 @@ const PublicPetView = ({ publicId }) => {
             <div className="text-xs text-gray-500">{pet.raca||'—'} • {pet.porte||'—'} {pet.sexo?'• '+pet.sexo:''}</div>
             {pet.cor_pelagem && <div className="text-xs text-gray-500 mt-0.5">Cor: {pet.cor_pelagem}</div>}
           </div>
-
           {vacinas.length > 0 && (
             <div className="mt-3 p-2 rounded-lg text-center text-xs font-semibold" style={{backgroundColor: vacinasEmDia ? '#dcfce7' : '#fee2e2', color: vacinasEmDia ? '#15803d' : '#b91c1c'}}>
               {vacinasEmDia ? '💉 Vacinas em dia' : (temVencida ? '⚠ Vacinas: tem vacina vencida' : '⚠ Vacinas: atenção')}
             </div>
           )}
-
           {temInfoSaude && (
             <div className="mt-3 rounded-lg p-3" style={{backgroundColor:'#faf6ec', border:'1px solid #e8dfc8'}}>
               <div className="text-[10px] tracking-[0.2em] font-bold mb-2" style={{color:'#8b7a4d'}}>SAÚDE DO PET</div>
@@ -1234,12 +1210,10 @@ const PublicPetView = ({ publicId }) => {
               </div>
             </div>
           )}
-
           <div className="space-y-2 mt-4">
             <a href={`tel:${tutor.telefone}`} className="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm" style={{display:'flex'}}>📞 Ligar para o tutor</a>
             <a href={`https://wa.me/55${(tutor.whatsapp||'').replace(/\D/g,'')}`} target="_blank" className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-white text-sm" style={{backgroundColor:'#25D366', display:'flex'}}>💬 Chamar no WhatsApp</a>
           </div>
-
           {(emerg.nome || emerg.telefone) && (
             <div className="mt-3 pt-3 border-t text-xs text-gray-600 text-center leading-relaxed">
               Não conseguiu falar com o tutor?<br/>
@@ -1252,12 +1226,166 @@ const PublicPetView = ({ publicId }) => {
   );
 };
 
+const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
+  const [formato, setFormato] = useState('quadrado');
+  const [tamanho, setTamanho] = useState('3');
+  const publicUrl = `https://rgpet.vercel.app/?pet=${pet.public_id}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(publicUrl)}`;
+  const registroId = pet.registro_id || 'CL-'+String(pet.id).slice(-6);
+  const tamanhoCm = parseFloat(tamanho);
+  const [baixando, setBaixando] = useState(false);
+
+  const imprimir = () => {
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups no seu navegador para imprimir.'); return; }
+    const fontCodigo = tamanhoCm <= 2 ? '6px' : tamanhoCm <= 2.5 ? '7px' : tamanhoCm <= 3 ? '8px' : tamanhoCm <= 4 ? '10px' : '12px';
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>QR Code — ${pet.nome}</title>
+<style>
+  @page { margin: 1cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff; padding: 20px; }
+  .aviso { font-size: 11px; color: #666; margin-bottom: 20px; text-align: center; }
+  .placa {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: ${tamanhoCm}cm; height: ${tamanhoCm}cm;
+    background: white; border: 1px solid #ccc; padding: 0.15cm;
+    ${formato === 'redondo' ? 'border-radius: 50%;' : 'border-radius: 6px;'}
+  }
+  .qr { width: 100%; height: 100%; object-fit: contain; ${formato === 'redondo' ? 'border-radius: 50%;' : ''} }
+  .codigo { font-size: ${fontCodigo}; font-weight: bold; text-align: center; margin-top: 2px; color: #1a3c2e; letter-spacing: 0.3px; }
+  .info { margin-top: 2cm; font-size: 12px; color: #333; text-align: center; line-height: 1.6; }
+  .info b { color: #1a3c2e; }
+</style></head>
+<body>
+  <div class="aviso">🖨️ Na janela de impressão, escolha o tamanho ${tamanhoCm}cm x ${tamanhoCm}cm e formato ${formato}.<br/>Recorte na linha e plastifique.</div>
+  <div class="placa">
+    <img class="qr" src="${qrUrl}" />
+  </div>
+  <div class="codigo" style="font-size: ${fontCodigo}; margin-top: 4px;">${registroId}</div>
+  <div class="info">
+    <div><b>Pet:</b> ${pet.nome}</div>
+    <div><b>Tutor:</b> ${tutor?.nome || '—'}</div>
+    <div><b>Registro:</b> ${registroId}</div>
+  </div>
+  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 700); }</script>
+</body></html>`;
+    win.document.write(html);
+    win.document.close();
+  };
+
+  const baixarQR = async () => {
+    setBaixando(true);
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = qrUrl; });
+      const canvas = document.createElement('canvas');
+      const size = 600;
+      const codigoAlt = 70;
+      canvas.width = size;
+      canvas.height = size + codigoAlt;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (formato === 'redondo') {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2 - 4, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(img, 0, 0, size, size);
+        ctx.restore();
+      } else {
+        ctx.drawImage(img, 0, 0, size, size);
+      }
+      ctx.fillStyle = '#1a3c2e';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(registroId, size/2, size + 34);
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `QR-${pet.nome.replace(/\s/g,'_')}-${formato}-${tamanho}cm.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      window.open(qrUrl, '_blank');
+    }
+    setBaixando(false);
+  };
+
+  return (
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto p-4" style={{backgroundColor:'rgba(26,60,46,0.7)'}}>
+      <div className="mobile-container">
+        <div className="card">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <div className="font-bold text-base">{pet.nome}</div>
+              <div className="text-xs text-gray-500">Registro: {registroId}</div>
+              <div className="text-xs text-gray-500">Tutor: {tutor?.nome || '—'}</div>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 text-xl">✕</button>
+          </div>
+          <div className="label mb-1">Formato</div>
+          <div className="flex gap-2 mb-3">
+            <button onClick={()=>setFormato('quadrado')} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={formato==='quadrado'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>⬛ Quadrado</button>
+            <button onClick={()=>setFormato('redondo')} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={formato==='redondo'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>⚫ Redondo</button>
+          </div>
+          <div className="label mb-1">Tamanho</div>
+          <div className="flex gap-1 mb-4 flex-wrap">
+            {['2','2.5','3','4','5'].map(t => (
+              <button key={t} onClick={()=>setTamanho(t)} className="px-3 py-2 rounded-lg text-xs font-semibold" style={tamanho===t?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>{t} cm</button>
+            ))}
+          </div>
+          <div className="py-6 mb-4 flex items-center justify-center" style={{backgroundColor:'#f5f5f5', borderRadius:'12px'}}>
+            {formato === 'quadrado' ? (
+              <div style={{width:'200px', height:'200px', padding:'14px', backgroundColor:'#fff', boxShadow:'0 4px 20px rgba(0,0,0,0.1)', borderRadius:'10px', border:'1px solid #ddd'}}>
+                <img src={qrUrl} style={{width:'100%', height:'100%', objectFit:'contain'}} />
+                <div className="text-center font-bold mt-1" style={{color:'#1a3c2e', fontSize:'10px'}}>{registroId}</div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div style={{width:'200px', height:'200px', padding:'14px', backgroundColor:'#fff', borderRadius:'50%', boxShadow:'0 4px 20px rgba(0,0,0,0.1)', border:'1px solid #ddd'}}>
+                  <img src={qrUrl} style={{width:'100%', height:'100%', objectFit:'contain', borderRadius:'50%'}} />
+                </div>
+                <div className="font-bold mt-2" style={{color:'#1a3c2e', fontSize:'10px'}}>{registroId}</div>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <button onClick={imprimir} className="btn-primary py-3 rounded-xl font-semibold text-sm">🖨️ Imprimir</button>
+            <button onClick={baixarQR} disabled={baixando} className="py-3 rounded-xl font-semibold text-sm text-white" style={{backgroundColor:'#eab308'}}>{baixando ? 'Baixando...' : '⬇️ Baixar PNG'}</button>
+          </div>
+          <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">Imprima no tamanho real ({tamanhoCm}cm × {tamanhoCm}cm), recorte e plastifique.<br/>O número embaixo do QR é o mesmo do RG do pet.</p>
+          <div className="border-t pt-3">
+            <div className="label mb-1">Endereço para envio</div>
+            {tutor?.endereco || tutor?.cidade ? (
+              <div className="text-xs leading-relaxed" style={{color:'#1a3c2e'}}>
+                <div className="font-semibold">{tutor?.nome}</div>
+                <div>{tutor?.endereco || '—'}</div>
+                <div>{[tutor?.cidade, tutor?.uf].filter(Boolean).join(' - ')}{tutor?.cep ? ' · CEP ' + tutor.cep : ''}</div>
+                {tutor?.telefone && <div className="mt-1">📞 {tutor.telefone}</div>}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">Tutor ainda não cadastrou o endereço.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [aba, setAba] = useState('pedidos');
   const [filtroPedidos, setFiltroPedidos] = useState('todos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
   const [precos, setPrecos] = useState({ c1: settings.price_combo1, c2: settings.price_combo2 });
   const [tutores, setTutores] = useState([]);
+  const [qrPetSel, setQrPetSel] = useState(null);
+  const [buscaQR, setBuscaQR] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -1280,9 +1408,17 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     return true;
   });
 
-  const abrirWhatsApp = (telefone, nomeTutor, nomePet, tipo) => {
+  const petsFiltrados = buscaQR.trim() ? pets.filter(p => {
+    const rid = (p.registro_id || '').toLowerCase();
+    const pid = (p.public_id || '').toLowerCase();
+    const nome = (p.nome || '').toLowerCase();
+    const termo = buscaQR.trim().toLowerCase();
+    return rid.includes(termo) || pid.includes(termo) || nome.includes(termo);
+  }) : pets;
+
+  const abrirWhatsApp = (telefone, nomeTutor, nomePet) => {
     const numero = (telefone || '').replace(/\D/g, '');
-    if (!numero) { alert('Esse tutor ainda não cadastrou o telefone. Vá em "Usuários" pra ver o e-mail dele.'); return; }
+    if (!numero) { alert('Esse tutor ainda não cadastrou o telefone.'); return; }
     const comFone = numero.length <= 11 ? '55' + numero : numero;
     const msg = `Olá, ${nomeTutor || 'tutor(a)'}! Aqui é da RG Pet Cão Leotta. Vi que você começou a fazer o RG do(a) ${nomePet || 'seu pet'} mas não finalizou o pagamento. Posso te ajudar com alguma coisa?`;
     window.open(`https://wa.me/${comFone}?text=${encodeURIComponent(msg)}`, '_blank');
@@ -1292,10 +1428,11 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     <div className="mobile-container p-4">
       <h1 className="text-xl font-bold mb-4">Painel Admin</h1>
       <div className="flex gap-1 mb-3 border-b overflow-x-auto">
-        {['pedidos','precos','cupons','pets','usuarios'].map(t => (
-          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : 'Usuários'}</button>
+        {['pedidos','precos','cupons','pets','qrfisico','usuarios'].map(t => (
+          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
         ))}
       </div>
+
       {aba === 'pedidos' && (
         <>
           <div className="card mb-3 flex justify-between items-center">
@@ -1333,7 +1470,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                         <button onClick={()=>aprovarPedido(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold flex-1">✓ Aprovar</button>
                       )}
                       {o.status === 'pendente' && (
-                        <button onClick={()=>abrirWhatsApp(t?.whatsapp || t?.telefone, t?.nome, pet?.nome, o.tipo)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex-1" style={{backgroundColor:'#25D366'}}>💬 WhatsApp</button>
+                        <button onClick={()=>abrirWhatsApp(t?.whatsapp || t?.telefone, t?.nome, pet?.nome)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex-1" style={{backgroundColor:'#25D366'}}>💬 WhatsApp</button>
                       )}
                     </div>
                   </div>
@@ -1343,6 +1480,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           )}
         </>
       )}
+
       {aba === 'precos' && (
         <div className="card space-y-3">
           <h2 className="font-bold text-sm">Editar preços</h2>
@@ -1351,6 +1489,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           <button onClick={salvarPrecos} className="btn-primary w-full py-2 rounded-xl font-semibold text-sm">Salvar preços</button>
         </div>
       )}
+
       {aba === 'cupons' && (
         <>
           <div className="card mb-3 space-y-3">
@@ -1369,6 +1508,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           </div>
         </>
       )}
+
       {aba === 'pets' && (
         <div className="space-y-2">
           {pets.length === 0 && <div className="card text-xs text-gray-500 text-center">Nenhum pet.</div>}
@@ -1377,7 +1517,11 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
             return (
               <div key={pet.id} className="card py-3">
                 <div className="flex justify-between items-center">
-                  <div className="flex-1 min-w-0"><div className="font-semibold text-sm">{pet.nome}</div><div className="text-xs text-gray-500 truncate">{t?.nome || '—'}</div></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm">{pet.nome}</div>
+                    <div className="text-xs text-gray-500 truncate">{t?.nome || '—'}</div>
+                    <div className="text-[10px] text-gray-400">{pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div>
+                  </div>
                   <button onClick={()=>toggleLost(pet.id, pet.is_lost)} className="px-3 py-1.5 rounded-lg text-xs font-semibold ml-2 text-white" style={{backgroundColor: pet.is_lost?'#16a34a':'#dc2626'}}>{pet.is_lost ? 'Encontrado' : 'Perdido'}</button>
                 </div>
               </div>
@@ -1385,6 +1529,37 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           })}
         </div>
       )}
+
+      {aba === 'qrfisico' && (
+        <>
+          <div className="card mb-3">
+            <div className="label mb-2">🔍 Buscar por número do RG ou nome</div>
+            <input className="input-field" placeholder="Ex: CL-123456-789 ou Jack" value={buscaQR} onChange={e=>setBuscaQR(e.target.value)} />
+            <p className="text-[10px] text-gray-500 mt-1">Digite o número que aparece embaixo do QR Code ou o nome do pet.</p>
+          </div>
+          {petsFiltrados.length === 0 && (
+            <div className="card text-xs text-gray-500 text-center">{buscaQR ? 'Nenhum pet encontrado com esse número.' : 'Nenhum pet cadastrado.'}</div>
+          )}
+          <div className="space-y-2">
+            {petsFiltrados.map(pet => {
+              const t = tutores.find(x => x.id === pet.tutor_id);
+              return (
+                <div key={pet.id} className="card py-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm">{pet.nome}</div>
+                      <div className="text-xs text-gray-500 truncate">Tutor: {t?.nome || '—'}</div>
+                      <div className="text-[11px] font-bold mt-1" style={{color:'#1a3c2e', letterSpacing:'0.5px'}}>📋 {pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div>
+                    </div>
+                  </div>
+                  <button onClick={()=>setQrPetSel(pet)} className="btn-primary w-full py-2 rounded-xl font-semibold text-sm">🏷️ Gerar QR Code Físico</button>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       {aba === 'usuarios' && (
         <div className="space-y-2">
           <p className="text-xs text-gray-500 mb-2">Lista de tutores cadastrados.</p>
@@ -1405,6 +1580,8 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           })}
         </div>
       )}
+
+      {qrPetSel && <QRCodeFisicoModal pet={qrPetSel} tutor={tutores.find(x => x.id === qrPetSel.tutor_id)} onClose={()=>setQrPetSel(null)} />}
     </div>
   );
 };
