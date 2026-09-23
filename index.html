@@ -918,7 +918,7 @@ const PreviewScreen = ({ onBack }) => {
 // ============================================================
 //  >>> FIM DA PARTE 1 - COLE A PARTE 2 AQUI EMBAIXO <<<
 // ============================================================
-  const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
+    const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [mostrarCupom, setMostrarCupom] = useState(false);
@@ -1249,12 +1249,18 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff; padding: 20px; }
   .aviso { font-size: 11px; color: #666; margin-bottom: 20px; text-align: center; }
-  .placa { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1.5px solid #333; }
+  .placa { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1.5px solid #333; position: relative; }
+  
+  /* Formato Quadrado */
   .placa.quadrado { width: ${tamanhoCm}cm; height: ${alturaTotal}cm; border-radius: 6px; padding: 0.12cm; }
-  .placa.redondo { width: ${tamanhoCm}cm; height: ${tamanhoCm}cm; border-radius: 50%; padding: 12%; }
-  .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
-  .placa.redondo .qr { width: 78%; }
-  .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.08cm; }
+  .placa.quadrado .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
+  .placa.quadrado .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.08cm; }
+  
+  /* Formato Redondo (CORRIGIDO) */
+  .placa.redondo { width: ${tamanhoCm}cm; height: ${tamanhoCm}cm; border-radius: 50%; padding: 0; }
+  .placa.redondo .qr { width: 68%; aspect-ratio: 1 / 1; object-fit: contain; margin-top: -10%; }
+  .placa.redondo .codigo { position: absolute; bottom: 12%; width: 100%; text-align: center; font-size: ${fontCodigo}; font-weight: 900; color: #cc0000; letter-spacing: 0.5px; padding: 0; }
+  
   .info { margin-top: 2cm; font-size: 12px; color: #333; text-align: center; line-height: 1.6; }
   .info b { color: #1a3c2e; }
 </style></head>
@@ -1298,25 +1304,31 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
         ctx.textBaseline = 'middle';
         ctx.fillText(registroId, qrSize/2, qrSize + codigoAlt/2);
       } else {
+        // MUDANÇAS AQUI: Aumentando o QR Code e jogando o texto para baixo
         const canvasSize = 800;
         canvas.width = canvasSize;
         canvas.height = canvasSize;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasSize, canvasSize);
         const centro = canvasSize / 2;
-        const qrSize = 420;
-        const qrY = centro - qrSize/2 - 20;
+        const qrSize = 560; // Aumentado para ~70% do círculo
+        const qrY = centro - qrSize/2 - 20; // Sobe um pouco para dar espaço ao texto
+        
         ctx.save();
         ctx.beginPath();
         ctx.arc(centro, centro, centro - 20, 0, Math.PI*2);
         ctx.clip();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
         ctx.drawImage(img, (canvasSize - qrSize)/2, qrY, qrSize, qrSize);
+        
         ctx.fillStyle = '#cc0000';
         ctx.font = 'bold 40px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(registroId, centro, qrY + qrSize + 50);
+        // Texto na base do círculo (linha reta)
+        ctx.fillText(registroId, centro, canvasSize - 60);
         ctx.restore();
+        
         ctx.strokeStyle = '#333333';
         ctx.lineWidth = 6;
         ctx.beginPath();
@@ -1360,6 +1372,8 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
               <button key={t} onClick={()=>setTamanho(t)} className="px-3 py-2 rounded-lg text-xs font-semibold" style={tamanho===t?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>{t} cm</button>
             ))}
           </div>
+          
+          {/* MUDANÇA NA PRÉVIA VISUAL: Ajuste do QR Code e do texto no redondo */}
           <div className="py-6 mb-4 flex items-center justify-center" style={{backgroundColor:'#f5f5f5', borderRadius:'12px'}}>
             {formato === 'quadrado' ? (
               <div style={{width: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'10px', padding:'10px 10px 0 10px', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
@@ -1367,12 +1381,13 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
                 <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'11px', padding:'6px 0', letterSpacing:'0.5px'}}>{registroId}</div>
               </div>
             ) : (
-              <div style={{width: previewPx + 'px', height: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'50%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'14%', boxSizing:'border-box', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
-                <img src={qrUrl} style={{width:'78%', aspectRatio:'1', objectFit:'contain', display:'block'}} />
-                <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'9px', marginTop:'3px', letterSpacing:'0.3px'}}>{registroId}</div>
+              <div style={{width: previewPx + 'px', height: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'50%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', position:'relative', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
+                <img src={qrUrl} style={{width:'68%', aspectRatio:'1', objectFit:'contain', display:'block', marginTop:'-10%'}} />
+                <div style={{position:'absolute', bottom:'12%', textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'9px', letterSpacing:'0.3px', width:'100%'}}>{registroId}</div>
               </div>
             )}
           </div>
+
           <div className="grid grid-cols-2 gap-2 mb-3">
             <button onClick={imprimir} className="btn-primary py-3 rounded-xl font-semibold text-sm">🖨️ Imprimir</button>
             <button onClick={baixarQR} disabled={baixando} className="py-3 rounded-xl font-semibold text-sm text-white" style={{backgroundColor:'#eab308'}}>{baixando ? 'Baixando...' : '⬇️ Baixar PNG'}</button>
