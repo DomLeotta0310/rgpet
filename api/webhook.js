@@ -53,18 +53,13 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, msg: 'sem external_reference' });
     }
 
-    const partes = externalRef.split('|');
-    const petId = partes[0];
-    const tipo = partes[1];
-
     if (status !== 'approved') {
       return res.status(200).json({ ok: true, msg: 'pagamento ainda não aprovado: ' + status });
     }
 
-    const pedidoId = Date.now();
-
-    const insertPedido = await fetch(supabaseUrl + '/rest/v1/pedidos', {
-      method: 'POST',
+    // Atualiza o pedido existente para "pago"
+    const updateRes = await fetch(supabaseUrl + '/rest/v1/pedidos?id=eq.' + externalRef, {
+      method: 'PATCH',
       headers: {
         'apikey': supabaseKey,
         'Authorization': 'Bearer ' + supabaseKey,
@@ -72,24 +67,19 @@ export default async function handler(req, res) {
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        id: pedidoId,
-        pet_id: Number(petId),
-        tipo: tipo,
-        valor: pagamento.transaction_amount,
-        valor_base: pagamento.transaction_amount,
         status: 'pago',
-        metodo: 'automatico',
-        cupom: null
+        valor: pagamento.transaction_amount,
+        metodo: 'automatico'
       })
     });
 
-    if (!insertPedido.ok) {
-      const erro = await insertPedido.text();
+    if (!updateRes.ok) {
+      const erro = await updateRes.text();
       console.error('Erro Supabase:', erro);
-      return res.status(200).json({ ok: true, msg: 'erro ao gravar pedido' });
+      return res.status(200).json({ ok: true, msg: 'erro ao atualizar pedido' });
     }
 
-    return res.status(200).json({ ok: true, msg: 'pagamento registrado com sucesso' });
+    return res.status(200).json({ ok: true, msg: 'pagamento confirmado' });
 
   } catch (error) {
     console.error('Erro webhook:', error);
