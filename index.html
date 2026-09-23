@@ -132,13 +132,13 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const RACAS_DB = {
-  'bulldog inglês': 'O Bulldog Inglês surgiu na Inglaterra e teve origem ligada a antigos cães de trabalho e de arena, atividades proibidas em 1835. A partir daí, criadores passaram a selecionar exemplares de temperamento dócil e companheiro, dando origem ao cão de estimação equilibrado e afetuoso que conhecemos hoje. É um símbolo tradicional da cultura britânica e, apesar da aparência robusta, é conhecido por ser calmo, apegado à família e tolerante com crianças.',
-  'bulldog': 'O Bulldog Inglês surgiu na Inglaterra e teve origem ligada a antigos cães de trabalho e de arena, atividades proibidas em 1835.',
+  'bulldog inglês': 'O Bulldog Inglês surgiu na Inglaterra e teve origem ligada a antigos cães de trabalho e de arena, atividades proibidas em 1835. A partir daí, criadores passaram a selecionar exemplares de temperamento dócil e companheiro, dando origem ao cão de estimação equilibrado e afetuoso que conhecemos hoje.',
+  'bulldog': 'O Bulldog Inglês surgiu na Inglaterra. É um símbolo tradicional da cultura britânica e, apesar da aparência robusta, é conhecido por ser calmo, apegado à família e tolerante com crianças.',
   'poodle': 'O Poodle é originário da Alemanha, conhecido como "cão d\'água", mas foi na França que ganhou popularidade. Inteligente, elegante e muito apegado ao tutor.',
   'labrador': 'O Labrador Retriever é originário do Canadá. Criado para ajudar pescadores, ficou conhecido pela docilidade, inteligência e amor pela água.',
   'golden retriever': 'O Golden Retriever surgiu na Escócia no século XIX, criado para caçar aves aquáticas. É conhecido pela docilidade, inteligência e lealdade.',
   'pinscher': 'O Pinscher é de origem alemã. Apesar do tamanho pequeno, tem personalidade forte, é alerta, ativo e muito apegado ao tutor.',
-  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia e costuma ser muito carinhoso com crianças e idosos.',
+  'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia.',
   'pug': 'O Pug é originário da China, criado para ser cão de companhia da nobreza. É brincalhão, afetuoso e adora atenção.',
   'srd': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, geralmente mais resistentes a doenças, extremamente leais e cheios de personalidade.',
   'vira-lata': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, extremamente leais e cheios de personalidade.',
@@ -146,8 +146,8 @@ const RACAS_DB = {
   'rottweiler': 'O Rottweiler é de origem alemã. É forte, leal e protetor.',
   'yorkshire': 'O Yorkshire Terrier surgiu na Inglaterra, criado para caçar ratos nas fábricas. É corajoso, esperto e cheio de energia.',
   'maltês': 'O Maltês é uma das raças mais antigas do mundo, originária da Ilha de Malta. É dócil, apegado, inteligente e adora colo.',
-  'persa': 'O Persa é uma das raças de gato mais antigas e conhecidas do mundo, originária da Pérsia (atual Irã). É conhecido pela pelagem longa e sedosa, temperamento calmo e apegado aos donos. Adora ambientes tranquilos.',
-  'siamês': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). É conhecido pelos olhos azuis e pelagem clara com extremidades escuras. Muito comunicativo, inteligente e apegado ao tutor.',
+  'persa': 'O Persa é uma das raças de gato mais antigas e conhecidas do mundo, originária da Pérsia (atual Irã). É conhecido pela pelagem longa e sedosa, temperamento calmo e apegado aos donos.',
+  'siamês': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). É conhecido pelos olhos azuis e pelagem clara com extremidades escuras. Muito comunicativo e apegado ao tutor.',
   'angorá': 'O Angorá é uma raça de gato originária da Turquia. É conhecido pela pelagem semilonga e sedosa, olhos geralmente azuis ou âmbar e temperamento ativo e carinhoso.',
 };
 
@@ -178,27 +178,20 @@ const buscarHistoriaRaca = (raca) => {
   if (!raca) return null;
   const key = normalizar(raca);
   if (!key || key.length < 3) return null;
-
-  // 1) Match exato
   for (const k in RACAS_DB) {
     if (key === normalizar(k)) return RACAS_DB[k];
   }
-  // 2) Substring
   for (const k in RACAS_DB) {
     const kNorm = normalizar(k);
     if (key.includes(kNorm) || kNorm.includes(key)) return RACAS_DB[k];
   }
-  // 3) Aproximado (Levenshtein)
   let melhor = null;
   let melhorDist = Infinity;
   for (const k in RACAS_DB) {
     const kNorm = normalizar(k);
     const d = levenshtein(key, kNorm);
     const limite = Math.max(2, Math.floor(kNorm.length * 0.35));
-    if (d <= limite && d < melhorDist) {
-      melhorDist = d;
-      melhor = RACAS_DB[k];
-    }
+    if (d <= limite && d < melhorDist) { melhorDist = d; melhor = RACAS_DB[k]; }
   }
   return melhor;
 };
@@ -226,13 +219,7 @@ const PET_FICTICIO = {
   ]
 };
 
-const TUTOR_FICTICIO = {
-  nome: 'Maria Silva',
-  endereco: 'Rua Exemplo, 123',
-  cidade: 'São Paulo',
-  uf: 'SP',
-  cep: '01000-000'
-};
+const TUTOR_FICTICIO = { nome: 'Maria Silva', endereco: 'Rua Exemplo, 123', cidade: 'São Paulo', uf: 'SP', cep: '01000-000' };
 
 const LandingPage = ({ onLoginClick, onRegisterClick }) => (
   <div style={{backgroundColor:'#faf6ec', minHeight:'100vh'}}>
@@ -293,10 +280,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
-    setModo(initialRegister ? 'register' : 'login');
-    setErro(''); setMsg('');
-  }, [initialRegister]);
+  useEffect(() => { setModo(initialRegister ? 'register' : 'login'); setErro(''); setMsg(''); }, [initialRegister]);
 
   const submitLogin = async (e) => {
     e.preventDefault();
@@ -307,11 +291,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
         if (form.pin && form.pin.length !== 4) { setErro('O PIN precisa ter 4 dígitos'); setCarregando(false); return; }
         const { data: existe } = await sb.from('tutores').select('id').eq('email', form.email).maybeSingle();
         if (existe) { setErro('E-mail já cadastrado'); setCarregando(false); return; }
-        const novo = {
-          id: Date.now(), nome: form.nome, email: form.email, senha: form.senha,
-          pin: form.pin || null, cpf: null, telefone: null, whatsapp: null,
-          endereco: null, cidade: null, uf: null, cep: null
-        };
+        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null };
         const { data, error } = await sb.from('tutores').insert([novo]).select().single();
         if (error) { setErro('Erro ao cadastrar: ' + error.message); setCarregando(false); return; }
         onLogin(data);
@@ -320,9 +300,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
         if (error || !data) { setErro('E-mail ou senha incorretos'); setCarregando(false); return; }
         onLogin(data);
       }
-    } catch (err) {
-      setErro('Erro: ' + err.message);
-    }
+    } catch (err) { setErro('Erro: ' + err.message); }
     setCarregando(false);
   };
 
@@ -344,10 +322,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
     setMsg('✓ Senha redefinida!'); setResetEtapa(3);
   };
 
-  const voltarAoLogin = () => {
-    setModo('login'); setErro(''); setMsg(''); setResetEtapa(1); setResetEmail(''); setNovaSenha('');
-    setForm({ nome: '', email: resetEmail, senha: '', pin: '' });
-  };
+  const voltarAoLogin = () => { setModo('login'); setErro(''); setMsg(''); setResetEtapa(1); setResetEmail(''); setNovaSenha(''); setForm({ nome: '', email: resetEmail, senha: '', pin: '' }); };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
@@ -454,22 +429,15 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
 
   const handleChange = (idx, val) => {
     const v = val.replace(/\D/g,'').slice(-1);
-    const novo = [...pin];
-    novo[idx] = v;
-    setPin(novo);
+    const novo = [...pin]; novo[idx] = v; setPin(novo);
     if (v && idx < 3) inputsRef[idx+1].current && inputsRef[idx+1].current.focus();
     if (novo.every(x => x !== '')) validar(novo.join(''));
   };
-
-  const handleKeyDown = (idx, e) => {
-    if (e.key === 'Backspace' && !pin[idx] && idx > 0) inputsRef[idx-1].current && inputsRef[idx-1].current.focus();
-  };
-
+  const handleKeyDown = (idx, e) => { if (e.key === 'Backspace' && !pin[idx] && idx > 0) inputsRef[idx-1].current && inputsRef[idx-1].current.focus(); };
   const validar = (codigo) => {
     if (codigo === user.pin) { onUnlock(); }
     else {
-      const t = tentativas + 1;
-      setTentativas(t);
+      const t = tentativas + 1; setTentativas(t);
       setErro(t >= 3 ? 'PIN incorreto. Use a senha completa.' : 'PIN incorreto. Tente novamente.');
       setPin(['','','','']);
       setTimeout(()=>inputsRef[0].current && inputsRef[0].current.focus(), 100);
@@ -521,21 +489,15 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   const [pinSalvo, setPinSalvo] = useState(false);
 
   const salvar = async () => {
-    const { error } = await sb.from('tutores').update({
-      nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp,
-      endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep
-    }).eq('id', user.id);
+    const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep }).eq('id', user.id);
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
-    onUpdate(form);
-    setSalvo(true); setTimeout(()=>setSalvo(false), 2000);
+    onUpdate(form); setSalvo(true); setTimeout(()=>setSalvo(false), 2000);
   };
-
   const salvarPin = async () => {
     if (pin && pin.length !== 4) { alert('O PIN precisa ter 4 dígitos'); return; }
     const { error } = await sb.from('tutores').update({ pin: pin || null }).eq('id', user.id);
     if (error) { alert('Erro: ' + error.message); return; }
-    onUpdate({ ...form, pin });
-    setPinSalvo(true); setTimeout(()=>setPinSalvo(false), 2000);
+    onUpdate({ ...form, pin }); setPinSalvo(true); setTimeout(()=>setPinSalvo(false), 2000);
   };
 
   return (
@@ -793,28 +755,15 @@ const Certidao = ({ pet, tutor }) => {
 const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
   const emEdicao = !!initialPet;
   const [form, setForm] = useState(initialPet ? {
-    nome: initialPet.nome || '',
-    raca: initialPet.raca || '',
-    porte: initialPet.porte || '',
-    idade: initialPet.idade || '',
-    data_nascimento: initialPet.data_nascimento || '',
-    foto: initialPet.foto || '',
-    sexo: initialPet.sexo || 'Macho',
-    castrado: initialPet.castrado || 'Não',
-    peso: initialPet.peso || '',
-    cor_pelagem: initialPet.cor_pelagem || '',
-    local_nascimento: initialPet.local_nascimento || '',
-    pai: initialPet.pai || '',
-    mae: initialPet.mae || '',
-    especie: initialPet.especie || 'Cão',
-    microchip: initialPet.microchip || '',
-    tem_microchip: initialPet.tem_microchip || false,
+    nome: initialPet.nome || '', raca: initialPet.raca || '', porte: initialPet.porte || '', idade: initialPet.idade || '',
+    data_nascimento: initialPet.data_nascimento || '', foto: initialPet.foto || '', sexo: initialPet.sexo || 'Macho',
+    castrado: initialPet.castrado || 'Não', peso: initialPet.peso || '', cor_pelagem: initialPet.cor_pelagem || '',
+    local_nascimento: initialPet.local_nascimento || '', pai: initialPet.pai || '', mae: initialPet.mae || '',
+    especie: initialPet.especie || 'Cão', microchip: initialPet.microchip || '', tem_microchip: initialPet.tem_microchip || false,
     saude: initialPet.saude || { doencas:'', alergias:'', medicamentos:'', tipoSanguineo:'', comportamento:'Dócil', observacoes:'' },
     emergencia: initialPet.emergencia || { nome:'', telefone:'', relacao:'' }
   } : {
-    nome:'', raca:'', porte:'', idade:'', data_nascimento:'', foto:'',
-    sexo:'Macho', castrado:'Não', peso:'', cor_pelagem:'', local_nascimento:'', pai:'', mae:'', especie:'Cão',
-    microchip:'', tem_microchip:false,
+    nome:'', raca:'', porte:'', idade:'', data_nascimento:'', foto:'', sexo:'Macho', castrado:'Não', peso:'', cor_pelagem:'', local_nascimento:'', pai:'', mae:'', especie:'Cão', microchip:'', tem_microchip:false,
     saude: { doencas:'', alergias:'', medicamentos:'', tipoSanguineo:'', comportamento:'Dócil', observacoes:'' },
     emergencia: { nome:'', telefone:'', relacao:'' }
   });
@@ -825,33 +774,18 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
   const salvar = async () => {
     if (!form.nome) { alert('Informe o nome do pet'); return; }
     setSalvando(true);
-
     if (emEdicao) {
       const { data, error } = await sb.from('pets').update({
-        nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte,
-        sexo: form.sexo, castrado: form.castrado, peso: form.peso,
-        cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento,
+        nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado,
+        peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento,
         local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto,
-        tem_microchip: form.tem_microchip, microchip: form.microchip,
-        saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas
+        tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas
       }).eq('id', initialPet.id).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
     } else {
       const registroId = 'CL-' + String(Date.now()).slice(-6) + '-' + Math.floor(Math.random()*900+100);
-      const pet = {
-        id: Date.now(),
-        tutor_id: user.id,
-        public_id: 'pet_' + Math.random().toString(36).slice(2,8),
-        registro_id: registroId,
-        data_registro: new Date().toISOString(),
-        nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte,
-        sexo: form.sexo, castrado: form.castrado, peso: form.peso,
-        cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento,
-        local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto,
-        tem_microchip: form.tem_microchip, microchip: form.microchip,
-        saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: false
-      };
+      const pet = { id: Date.now(), tutor_id: user.id, public_id: 'pet_' + Math.random().toString(36).slice(2,8), registro_id: registroId, data_registro: new Date().toISOString(), nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: false };
       const { data, error } = await sb.from('pets').insert([pet]).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
@@ -987,18 +921,16 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
   );
 };
 
-const PreviewScreen = ({ onBack, onIrParaPagamento }) => {
+const PreviewScreen = ({ onBack }) => {
   return (
     <div className="mobile-container p-4">
       <button onClick={onBack} className="text-sm text-gray-500 mb-3">← Voltar</button>
       <h1 className="text-xl font-bold mb-1">Prévia dos documentos</h1>
       <p className="text-xs text-gray-500 mb-4">Veja como vai ficar o documento do seu pet.</p>
-
       <div className="p-3 rounded-xl mb-3 text-center" style={{backgroundColor:'#fef3c7', border:'1px solid #fde68a'}}>
         <div className="font-bold text-xs" style={{color:'#a16207'}}>⚠ ESTA É UMA PRÉVIA DO MODELO</div>
-        <div className="text-[10px] mt-1" style={{color:'#a16207'}}>Os dados abaixo são fictícios, só pra você ver o layout.<br/>Após o pagamento, os seus dados e os dados do seu pet aparecerão.</div>
+        <div className="text-[10px] mt-1" style={{color:'#a16207'}}>Os dados abaixo são fictícios.<br/>Após o pagamento, os seus dados e os dados do seu pet aparecerão.</div>
       </div>
-
       <div className="space-y-3 mb-4">
         <RGDocumento pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
         <CarteiraVacinas pet={PET_FICTICIO} />
@@ -1014,7 +946,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
   const [mostrarCupom, setMostrarCupom] = useState(false);
   const [processando, setProcessando] = useState(false);
 
-  const temCombo1 = orders.some(o => o.pet_id===pet.id && o.tipo==='combo1' && o.status==='pago');
   const pedidosPet = orders.filter(o => o.pet_id === pet.id);
 
   const aplicarCupom = () => {
@@ -1025,11 +956,29 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
   const calcular = (base) => cupomAplicado ? +(base * (1 - cupomAplicado.desconto/100)).toFixed(2) : base;
 
   const comprar = async () => {
-    if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nLá você escolhe a forma de pagamento (Pix, cartão ou boleto) e finaliza.\n\nApós o pagamento, você volta pro site automaticamente.\n\nDeseja continuar?')) return;
+    if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
 
     setProcessando(true);
     const base = settings.price_combo1;
     const valor = calcular(base);
+    const orderId = Date.now();
+
+    // Cria o pedido pendente ANTES de ir pro Mercado Pago
+    const pedido = {
+      id: orderId,
+      pet_id: pet.id,
+      tutor_id: user.id,
+      tipo: 'combo1',
+      valor_base: base,
+      valor: valor,
+      status: 'pendente',
+      metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual',
+      cupom: cupomAplicado?.code || null
+    };
+    const { error: erroInsert } = await sb.from('pedidos').insert([pedido]);
+    if (erroInsert) { alert('Erro ao registrar pedido: ' + erroInsert.message); setProcessando(false); return; }
+
+    onRefresh();
 
     if (settings.payment_mode === 'auto') {
       try {
@@ -1041,6 +990,7 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
             valor: valor,
             petId: pet.id,
             tipo: 'combo1',
+            orderId: orderId,
             userEmail: user.email
           })
         });
@@ -1056,16 +1006,8 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
         setProcessando(false);
       }
     } else {
-      const pedido = {
-        id: Date.now(), pet_id: pet.id, tutor_id: user.id, tipo: 'combo1',
-        valor_base: base, valor, status: 'pendente', metodo: 'manual',
-        cupom: cupomAplicado?.code || null
-      };
-      const { error } = await sb.from('pedidos').insert([pedido]);
-      if (error) { alert('Erro: ' + error.message); setProcessando(false); return; }
       alert(`Pedido registrado! Valor: R$ ${valor.toFixed(2)}. Envie o comprovante do Pix no WhatsApp para liberar.`);
       setCupom(''); setCupomAplicado(null); setMostrarCupom(false);
-      onRefresh();
       setProcessando(false);
     }
   };
@@ -1076,7 +1018,6 @@ const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh })
         <div className="text-4xl mb-2">🔒</div>
         <div className="font-bold text-base mb-1" style={{color:'#1a3c2e'}}>Documentos bloqueados</div>
         <div className="text-xs text-gray-600 mb-4">Faça o pagamento para liberar o RG, a carteira de vacinação e a certidão de nascimento do seu pet.</div>
-
         <div className="p-3 rounded-xl mb-3 text-center" style={{backgroundColor:'#fef3c7', border:'1px solid #fde68a'}}>
           <div className="font-bold text-[11px]" style={{color:'#a16207'}}>⚠ ESTA É UMA PRÉVIA DO MODELO</div>
           <div className="text-[10px] mt-1" style={{color:'#a16207'}}>Os dados abaixo são fictícios. Após o pagamento, os dados reais do seu pet aparecerão.</div>
@@ -1157,6 +1098,23 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
     setProcessando(true);
     const base = tipo === 'combo1' ? settings.price_combo1 : settings.price_combo2;
     const valor = calcular(base);
+    const orderId = Date.now();
+
+    const pedido = {
+      id: orderId,
+      pet_id: pet.id,
+      tutor_id: user.id,
+      tipo: tipo,
+      valor_base: base,
+      valor: valor,
+      status: 'pendente',
+      metodo: settings.payment_mode === 'auto' ? 'automatico' : 'manual',
+      cupom: cupomAplicado?.code || null
+    };
+    const { error: erroInsert } = await sb.from('pedidos').insert([pedido]);
+    if (erroInsert) { alert('Erro ao registrar pedido: ' + erroInsert.message); setProcessando(false); return; }
+
+    onRefresh();
 
     if (settings.payment_mode === 'auto') {
       try {
@@ -1168,6 +1126,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
             valor: valor,
             petId: pet.id,
             tipo: tipo,
+            orderId: orderId,
             userEmail: user.email
           })
         });
@@ -1183,28 +1142,14 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
         setProcessando(false);
       }
     } else {
-      const pedido = {
-        id: Date.now(), pet_id: pet.id, tutor_id: user.id, tipo,
-        valor_base: base, valor, status: 'pendente', metodo: 'manual',
-        cupom: cupomAplicado?.code || null
-      };
-      const { error } = await sb.from('pedidos').insert([pedido]);
-      if (error) { alert('Erro: ' + error.message); setProcessando(false); return; }
       alert(`Pedido registrado! Valor: R$ ${valor.toFixed(2)}. Envie o comprovante do Pix no WhatsApp para liberar.`);
       setCupom(''); setCupomAplicado(null); setMostrarCupom(false);
-      onRefresh();
       setProcessando(false);
     }
   };
 
-  const marcarPerdido = async () => {
-    await sb.from('pets').update({ is_lost: true }).eq('id', pet.id);
-    onRefresh();
-  };
-  const marcarEmCasa = async () => {
-    await sb.from('pets').update({ is_lost: false }).eq('id', pet.id);
-    onRefresh();
-  };
+  const marcarPerdido = async () => { await sb.from('pets').update({ is_lost: true }).eq('id', pet.id); onRefresh(); };
+  const marcarEmCasa = async () => { await sb.from('pets').update({ is_lost: false }).eq('id', pet.id); onRefresh(); };
 
   return (
     <div className="mobile-container p-4">
@@ -1253,33 +1198,14 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
                 <p className="text-xs text-gray-500 mb-3">Documento liberado após confirmação do pagamento.</p>
                 <div className="space-y-2">
                   <div className="border rounded-lg p-3 flex justify-between items-center">
-                    <div className="font-semibold text-xs">Combo 1 — RG + Carteirinha + Certidão</div>
-                    <div className="text-right ml-2">
-                      <div className="font-bold text-sm">R$ {calcular(settings.price_combo1).toFixed(2)}</div>
-                      {!temCombo1 && <button onClick={()=>comprar('combo1')} disabled={processando} className="btn-primary text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
-                      {temCombo1 && <span className="text-xs text-green-700">✓ Adquirido</span>}
-                    </div>
-                  </div>
-                  <div className="border rounded-lg p-3 flex justify-between items-center">
-                    <div>
-                      <div className="font-semibold text-xs">Combo 2 — QR Code</div>
-                      <div className="text-xs text-gray-500">{temCombo1 ? 'Adicional plaquinha' : 'Requer Combo 1'}</div>
-                    </div>
+                    <div className="font-semibold text-xs">Combo 2 — QR Code</div>
                     <div className="text-right ml-2">
                       <div className="font-bold text-sm">R$ {calcular(settings.price_combo2).toFixed(2)}</div>
-                      {!temCombo2 && temCombo1 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
+                      {!temCombo2 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
                       {temCombo2 && <span className="text-xs text-green-700">✓ Adquirido</span>}
                     </div>
                   </div>
                 </div>
-                <button onClick={()=>setMostrarCupom(!mostrarCupom)} className="text-xs text-gray-600 underline mt-3">{mostrarCupom ? 'Fechar cupom' : 'Tenho um cupom'}</button>
-                {mostrarCupom && (
-                  <div className="flex gap-2 mt-2">
-                    <input className="input-field text-sm" placeholder="Cupom" value={cupom} onChange={e=>setCupom(e.target.value)} />
-                    <button onClick={aplicarCupom} className="btn-primary px-4 rounded-xl text-sm">Aplicar</button>
-                  </div>
-                )}
-                {cupomAplicado && <div className="text-xs text-green-700 mt-2">Cupom {cupomAplicado.code} ({cupomAplicado.desconto}% off)</div>}
                 <div className="text-xs text-gray-500 mt-3 p-2 rounded-lg" style={{backgroundColor:'#faf6ec'}}>Modo: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div>
               </div>
               {pedidosPet.length > 0 && (
@@ -1311,7 +1237,6 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
               ) : (
                 <div className="text-xs text-gray-600 py-6">
                   Adquira o <strong>Combo 2</strong> para liberar o QR Code de Emergência.
-                  {!temCombo2 && temCombo1 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow w-full py-2 rounded-lg text-sm mt-3">{processando ? '...' : `Comprar por R$ ${calcular(settings.price_combo2).toFixed(2)}`}</button>}
                 </div>
               )}
             </div>
@@ -1383,32 +1308,12 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     })();
   }, [pets]);
 
-  const toggleMode = async () => {
-    await sb.from('configuracoes').update({ payment_mode: settings.payment_mode==='auto'?'manual':'auto' }).eq('id', 1);
-    onRefresh();
-  };
-  const salvarPrecos = async () => {
-    await sb.from('configuracoes').update({ price_combo1: parseFloat(precos.c1), price_combo2: parseFloat(precos.c2) }).eq('id', 1);
-    alert('Preços atualizados!'); onRefresh();
-  };
-  const aprovarPedido = async (id) => {
-    await sb.from('pedidos').update({ status: 'pago' }).eq('id', id);
-    alert('Pedido aprovado!'); onRefresh();
-  };
-  const criarCupom = async () => {
-    if (!novoCupom.code) return;
-    await sb.from('cupons').insert([{ code: novoCupom.code, desconto: novoCupom.desconto, ativo: true }]);
-    setNovoCupom({ code:'', desconto: 100 }); onRefresh();
-  };
-  const toggleCupom = async (code) => {
-    const c = coupons.find(x => x.code === code);
-    await sb.from('cupons').update({ ativo: !c.ativo }).eq('code', code);
-    onRefresh();
-  };
-  const toggleLost = async (id, atual) => {
-    await sb.from('pets').update({ is_lost: !atual }).eq('id', id);
-    onRefresh();
-  };
+  const toggleMode = async () => { await sb.from('configuracoes').update({ payment_mode: settings.payment_mode==='auto'?'manual':'auto' }).eq('id', 1); onRefresh(); };
+  const salvarPrecos = async () => { await sb.from('configuracoes').update({ price_combo1: parseFloat(precos.c1), price_combo2: parseFloat(precos.c2) }).eq('id', 1); alert('Preços atualizados!'); onRefresh(); };
+  const aprovarPedido = async (id) => { await sb.from('pedidos').update({ status: 'pago' }).eq('id', id); alert('Pedido aprovado!'); onRefresh(); };
+  const criarCupom = async () => { if (!novoCupom.code) return; await sb.from('cupons').insert([{ code: novoCupom.code, desconto: novoCupom.desconto, ativo: true }]); setNovoCupom({ code:'', desconto: 100 }); onRefresh(); };
+  const toggleCupom = async (code) => { const c = coupons.find(x => x.code === code); await sb.from('cupons').update({ ativo: !c.ativo }).eq('code', code); onRefresh(); };
+  const toggleLost = async (id, atual) => { await sb.from('pets').update({ is_lost: !atual }).eq('id', id); onRefresh(); };
 
   const pedidosFiltrados = orders.filter(o => {
     if (filtroPedidos === 'todos') return true;
@@ -1416,6 +1321,14 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     if (filtroPedidos === 'pendentes') return o.status === 'pendente';
     return true;
   });
+
+  const abrirWhatsApp = (telefone, nomeTutor, nomePet, tipo) => {
+    const numero = (telefone || '').replace(/\D/g, '');
+    if (!numero) { alert('Esse tutor ainda não cadastrou o telefone. Vá em "Usuários" pra ver o e-mail dele.'); return; }
+    const comFone = numero.length <= 11 ? '55' + numero : numero;
+    const msg = `Olá, ${nomeTutor || 'tutor(a)'}! Aqui é da RG Pet Cão Leotta. Vi que você começou a fazer o RG do(a) ${nomePet || 'seu pet'} mas não finalizou o pagamento. Posso te ajudar com alguma coisa?`;
+    window.open(`https://wa.me/${comFone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   return (
     <div className="mobile-container p-4">
@@ -1432,7 +1345,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
             <button onClick={toggleMode} className="px-4 py-2 rounded-xl text-white font-semibold text-xs" style={{backgroundColor: settings.payment_mode==='auto' ? '#16a34a' : '#ca8a04'}}>→ {settings.payment_mode==='auto'?'Manual':'Auto'}</button>
           </div>
 
-          <div className="flex gap-1 mb-3">
+          <div className="flex gap-1 mb-3 flex-wrap">
             {[['todos','Todos'],['pagos','Pagos'],['pendentes','Pendentes']].map(([k,label]) => (
               <button key={k} onClick={()=>setFiltroPedidos(k)} className="px-3 py-1.5 rounded-full text-xs font-semibold" style={filtroPedidos===k?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>{label}</button>
             ))}
@@ -1452,16 +1365,21 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-sm">{pet?.nome || '—'}</div>
                         <div className="text-xs text-gray-500">Tutor: {t?.nome || '—'}</div>
+                        {t?.telefone && <div className="text-xs text-gray-500">📞 {t.telefone}</div>}
                         <div className="text-xs">{o.tipo==='combo1'?'Combo 1':'Combo 2 (QR)'} • R$ {Number(o.valor).toFixed(2)}</div>
                         <div className="text-[10px] mt-1">
                           <span className={o.status==='pago'?'text-green-700':'text-yellow-700'}>
                             {o.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}
                           </span>
-                          {o.cupom && <span className="text-gray-400"> • Cupom: {o.cupom}</span>}
                         </div>
                       </div>
+                    </div>
+                    <div className="flex gap-2 mt-2">
                       {o.status === 'pendente' && (
-                        <button onClick={()=>aprovarPedido(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold ml-2">Aprovar</button>
+                        <button onClick={()=>aprovarPedido(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold flex-1">✓ Aprovar</button>
+                      )}
+                      {o.status === 'pendente' && (
+                        <button onClick={()=>abrirWhatsApp(t?.whatsapp || t?.telefone, t?.nome, pet?.nome, o.tipo)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex-1" style={{backgroundColor:'#25D366'}}>💬 WhatsApp</button>
                       )}
                     </div>
                   </div>
@@ -1523,6 +1441,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
               <div key={t.id} className="card py-3">
                 <div className="font-semibold text-sm">{t.nome}</div>
                 <div className="text-xs text-gray-500 truncate">{t.email}</div>
+                {t.telefone && <div className="text-xs text-gray-500">📞 {t.telefone}</div>}
                 <div className="text-[10px] text-gray-400">Senha: {t.senha} • PIN: {t.pin || 'não definido'}</div>
                 {petsDoTutor.length > 0 && (
                   <div className="text-xs mt-1 font-semibold" style={{color:'#1a3c2e'}}>🐾 Pets: {petsDoTutor.map(p => p.nome).join(', ')}</div>
@@ -1580,9 +1499,7 @@ const App = () => {
       setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' });
       setTimeout(() => setMsgPagamento(null), 8000);
     }
-
     carregarDados();
-
     const saved = localStorage.getItem('rgpet_sessao');
     if (saved) {
       try {
@@ -1597,31 +1514,17 @@ const App = () => {
     }
   }, []);
 
-  const handleLogin = (u) => {
-    setUser(u); setView('dashboard');
-    localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id }));
-  };
-
-  const handleLogout = () => {
-    setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null);
-    localStorage.removeItem('rgpet_sessao');
-  };
-
+  const handleLogin = (u) => { setUser(u); setView('dashboard'); localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id })); };
+  const handleLogout = () => { setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); localStorage.removeItem('rgpet_sessao'); };
   const handleUnlockPin = async () => {
     const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
     const { data } = await sb.from('tutores').select('*').eq('id', saved.userId).maybeSingle();
     if (data) { setUser(data); setView('dashboard'); setNeedPin(false); setPinUser(null); }
   };
-
-  const handleUsarSenha = () => {
-    localStorage.removeItem('rgpet_sessao');
-    setNeedPin(false); setUser(null); setPinUser(null); setView('login');
-  };
+  const handleUsarSenha = () => { localStorage.removeItem('rgpet_sessao'); setNeedPin(false); setUser(null); setPinUser(null); setView('login'); };
 
   if (publicId) return <PublicPetView publicId={publicId} />;
-
   if (needPin && !user && pinUser) return <PinScreen user={pinUser} onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} />;
-
   if (!user) {
     if (view === 'landing') return <LandingPage onLoginClick={()=>{setRegisterMode(false);setView('login');}} onRegisterClick={()=>{setRegisterMode(true);setView('login');}} />;
     return <LoginScreen onLogin={handleLogin} initialRegister={registerMode} onBackToLanding={()=>setView('landing')} />;
@@ -1630,7 +1533,6 @@ const App = () => {
   return (
     <div className="min-h-screen" style={{backgroundColor:'#faf6ec'}}>
       <Navbar user={user} currentView={view} onNavigate={setView} onLogout={handleLogout} isAdmin={isAdmin} />
-
       {msgPagamento && (
         <div className="mobile-container px-4 pt-3">
           <div className="p-3 rounded-xl text-sm font-semibold text-center" style={{backgroundColor: msgPagamento.tipo==='sucesso'?'#dcfce7':'#fef3c7', color: msgPagamento.tipo==='sucesso'?'#15803d':'#a16207'}}>
@@ -1638,7 +1540,6 @@ const App = () => {
           </div>
         </div>
       )}
-
       {view === 'dashboard' && !petSelecionado && !petEditando && (
         <Dashboard user={user} pets={pets} orders={orders} onOpenPet={setPetSelecionado} onNewPet={()=>setView('newPet')} onVerPet={setVerPet} onEditPet={setPetEditando} carregando={carregando} />
       )}
@@ -1652,7 +1553,7 @@ const App = () => {
         <PetDetail user={user} pet={pets.find(p=>p.id===petSelecionado.id)||petSelecionado} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} onBack={()=>{setPetSelecionado(null);setTabInicial(null);}} onEdit={()=>setPetEditando(petSelecionado)} initialTab={tabInicial} />
       )}
       {view === 'profile' && <TutorProfile user={user} onUpdate={(u)=>setUser({...user, ...u})} onGerarPrevia={()=>setView('preview')} />}
-      {view === 'preview' && <PreviewScreen onBack={()=>setView('profile')} onIrParaPagamento={()=>{setView('dashboard');}} />}
+      {view === 'preview' && <PreviewScreen onBack={()=>setView('profile')} />}
       {view === 'admin' && isAdmin && <AdminPanel user={user} pets={pets} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} />}
       {verPet && <ModoApresentacao pet={pets.find(p=>p.id===verPet.id)||verPet} tutor={user} onClose={()=>setVerPet(null)} />}
     </div>
