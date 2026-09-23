@@ -139,8 +139,6 @@ const RACAS_DB = {
   'golden retriever': 'O Golden Retriever surgiu na Escócia no século XIX, criado para caçar aves aquáticas. É conhecido pela docilidade, inteligência e lealdade.',
   'pinscher': 'O Pinscher é de origem alemã. Apesar do tamanho pequeno, tem personalidade forte, é alerta, ativo e muito apegado ao tutor.',
   'shih tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia e costuma ser muito carinhoso com crianças e idosos.',
-  'shihtzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia e costuma ser muito carinhoso com crianças e idosos.',
-  'shih-tzu': 'O Shih Tzu é uma raça de origem tibetana, criada originalmente para viver em palácios chineses. É conhecido pela pelagem longa e sedosa, temperamento doce e apegado à família. Adora colo, é excelente cão de companhia e costuma ser muito carinhoso com crianças e idosos.',
   'pug': 'O Pug é originário da China, criado para ser cão de companhia da nobreza. É brincalhão, afetuoso e adora atenção.',
   'srd': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, geralmente mais resistentes a doenças, extremamente leais e cheios de personalidade.',
   'vira-lata': 'SRD significa "Sem Raça Definida" — o famoso vira-lata. São cães únicos, extremamente leais e cheios de personalidade.',
@@ -148,34 +146,61 @@ const RACAS_DB = {
   'rottweiler': 'O Rottweiler é de origem alemã. É forte, leal e protetor.',
   'yorkshire': 'O Yorkshire Terrier surgiu na Inglaterra, criado para caçar ratos nas fábricas. É corajoso, esperto e cheio de energia.',
   'maltês': 'O Maltês é uma das raças mais antigas do mundo, originária da Ilha de Malta. É dócil, apegado, inteligente e adora colo.',
-  'maltes': 'O Maltês é uma das raças mais antigas do mundo, originária da Ilha de Malta. É dócil, apegado, inteligente e adora colo.',
   'persa': 'O Persa é uma das raças de gato mais antigas e conhecidas do mundo, originária da Pérsia (atual Irã). É conhecido pela pelagem longa e sedosa, temperamento calmo e apegado aos donos. Adora ambientes tranquilos.',
   'siamês': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). É conhecido pelos olhos azuis e pelagem clara com extremidades escuras. Muito comunicativo, inteligente e apegado ao tutor.',
-  'siam': 'O Siamês é uma raça de gato originária da Tailândia (antigo Sião). É conhecido pelos olhos azuis e pelagem clara com extremidades escuras. Muito comunicativo, inteligente e apegado ao tutor.',
   'angorá': 'O Angorá é uma raça de gato originária da Turquia. É conhecido pela pelagem semilonga e sedosa, olhos geralmente azuis ou âmbar e temperamento ativo e carinhoso.',
-  'angora': 'O Angorá é uma raça de gato originária da Turquia. É conhecido pela pelagem semilonga e sedosa, olhos geralmente azuis ou âmbar e temperamento ativo e carinhoso.',
 };
 
 const normalizar = (s) => {
   if (!s) return '';
   return s.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\s\-_]/g, '');
+    .replace(/[\s\-_.]/g, '');
+};
+
+const levenshtein = (a, b) => {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = [];
+  for (let i = 0; i <= m; i++) { dp.push(new Array(n+1).fill(0)); dp[i][0] = i; }
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+    }
+  }
+  return dp[m][n];
 };
 
 const buscarHistoriaRaca = (raca) => {
   if (!raca) return null;
   const key = normalizar(raca);
-  if (!key) return null;
+  if (!key || key.length < 3) return null;
+
+  // 1) Match exato
   for (const k in RACAS_DB) {
-    const kNorm = normalizar(k);
-    if (key === kNorm) return RACAS_DB[k];
+    if (key === normalizar(k)) return RACAS_DB[k];
   }
+  // 2) Substring
   for (const k in RACAS_DB) {
     const kNorm = normalizar(k);
     if (key.includes(kNorm) || kNorm.includes(key)) return RACAS_DB[k];
   }
-  return null;
+  // 3) Aproximado (Levenshtein)
+  let melhor = null;
+  let melhorDist = Infinity;
+  for (const k in RACAS_DB) {
+    const kNorm = normalizar(k);
+    const d = levenshtein(key, kNorm);
+    const limite = Math.max(2, Math.floor(kNorm.length * 0.35));
+    if (d <= limite && d < melhorDist) {
+      melhorDist = d;
+      melhor = RACAS_DB[k];
+    }
+  }
+  return melhor;
 };
 
 const calcularStatusVacina = (dataAplicacao) => {
@@ -570,7 +595,8 @@ const Dashboard = ({ user, pets, orders, onOpenPet, onNewPet, onVerPet, onEditPe
                   <div className="font-bold text-base truncate">{pet.nome}</div>
                   <div className="text-xs text-gray-500 truncate">{pet.raca||'—'} • {pet.porte||'—'} {pet.sexo?'• '+pet.sexo:''}</div>
                   <div className="flex gap-1 mt-1 flex-wrap">
-                    {c1 && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Combo 1 ✓</span>}
+                    {c1 && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Documentos liberados</span>}
+                    {!c1 && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">⏳ Aguardando pagamento</span>}
                     {c2 && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">QR ✓</span>}
                     {pet.is_lost && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠ PERDIDO</span>}
                   </div>
@@ -578,7 +604,11 @@ const Dashboard = ({ user, pets, orders, onOpenPet, onNewPet, onVerPet, onEditPe
               </div>
               <div className="flex gap-2 mt-3">
                 <button onClick={(e)=>{e.stopPropagation();onEditPet(pet);}} className="flex-1 py-2 rounded-xl font-semibold text-sm" style={{backgroundColor:'#fffefb', color:'#1a3c2e', border:'1px solid #e8dfc8'}}>✏️ Editar</button>
-                <button onClick={(e)=>{e.stopPropagation();onVerPet(pet);}} className="flex-1 py-2 rounded-xl font-semibold text-sm" style={{backgroundColor:'#eab308', color:'white'}}>👁️ Ver</button>
+                {c1 ? (
+                  <button onClick={(e)=>{e.stopPropagation();onVerPet(pet);}} className="flex-1 py-2 rounded-xl font-semibold text-sm" style={{backgroundColor:'#eab308', color:'white'}}>👁️ Ver</button>
+                ) : (
+                  <button onClick={(e)=>{e.stopPropagation();onOpenPet(pet);}} className="flex-1 py-2 rounded-xl font-semibold text-sm" style={{backgroundColor:'#1a3c2e', color:'white'}}>💰 Pagar p/ liberar</button>
+                )}
               </div>
             </div>
           );
@@ -974,9 +1004,129 @@ const PreviewScreen = ({ onBack, onIrParaPagamento }) => {
         <CarteiraVacinas pet={PET_FICTICIO} />
         <Certidao pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
       </div>
-      <div className="card mb-6">
-        <p className="text-xs text-gray-600 text-center mb-3">Gostou? Agora é só pagar pra liberar o documento com os seus dados.</p>
-        <button onClick={onIrParaPagamento} className="btn-primary w-full py-3 rounded-xl font-semibold">💰 Ir para pagamento</button>
+    </div>
+  );
+};
+
+const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
+  const [cupom, setCupom] = useState('');
+  const [cupomAplicado, setCupomAplicado] = useState(null);
+  const [mostrarCupom, setMostrarCupom] = useState(false);
+  const [processando, setProcessando] = useState(false);
+
+  const temCombo1 = orders.some(o => o.pet_id===pet.id && o.tipo==='combo1' && o.status==='pago');
+  const pedidosPet = orders.filter(o => o.pet_id === pet.id);
+
+  const aplicarCupom = () => {
+    const c = coupons.find(c => c.code.toLowerCase() === cupom.toLowerCase() && c.ativo);
+    if (!c) { alert('Cupom inválido'); return; }
+    setCupomAplicado(c); alert(`Cupom aplicado: ${c.desconto}% off!`);
+  };
+  const calcular = (base) => cupomAplicado ? +(base * (1 - cupomAplicado.desconto/100)).toFixed(2) : base;
+
+  const comprar = async () => {
+    if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nLá você escolhe a forma de pagamento (Pix, cartão ou boleto) e finaliza.\n\nApós o pagamento, você volta pro site automaticamente.\n\nDeseja continuar?')) return;
+
+    setProcessando(true);
+    const base = settings.price_combo1;
+    const valor = calcular(base);
+
+    if (settings.payment_mode === 'auto') {
+      try {
+        const resp = await fetch('https://rgpet.vercel.app/api/create-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            titulo: 'RG Pet — Combo 1 (RG + Carteirinha + Certidão)',
+            valor: valor,
+            petId: pet.id,
+            tipo: 'combo1',
+            userEmail: user.email
+          })
+        });
+        const data = await resp.json();
+        if (data.init_point) {
+          window.location.href = data.init_point;
+        } else {
+          alert('Erro ao gerar pagamento: ' + (data.error || 'desconhecido'));
+          setProcessando(false);
+        }
+      } catch (err) {
+        alert('Erro de conexão: ' + err.message);
+        setProcessando(false);
+      }
+    } else {
+      const pedido = {
+        id: Date.now(), pet_id: pet.id, tutor_id: user.id, tipo: 'combo1',
+        valor_base: base, valor, status: 'pendente', metodo: 'manual',
+        cupom: cupomAplicado?.code || null
+      };
+      const { error } = await sb.from('pedidos').insert([pedido]);
+      if (error) { alert('Erro: ' + error.message); setProcessando(false); return; }
+      alert(`Pedido registrado! Valor: R$ ${valor.toFixed(2)}. Envie o comprovante do Pix no WhatsApp para liberar.`);
+      setCupom(''); setCupomAplicado(null); setMostrarCupom(false);
+      onRefresh();
+      setProcessando(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="card text-center">
+        <div className="text-4xl mb-2">🔒</div>
+        <div className="font-bold text-base mb-1" style={{color:'#1a3c2e'}}>Documentos bloqueados</div>
+        <div className="text-xs text-gray-600 mb-4">Faça o pagamento para liberar o RG, a carteira de vacinação e a certidão de nascimento do seu pet.</div>
+
+        <div className="p-3 rounded-xl mb-3 text-center" style={{backgroundColor:'#fef3c7', border:'1px solid #fde68a'}}>
+          <div className="font-bold text-[11px]" style={{color:'#a16207'}}>⚠ ESTA É UMA PRÉVIA DO MODELO</div>
+          <div className="text-[10px] mt-1" style={{color:'#a16207'}}>Os dados abaixo são fictícios. Após o pagamento, os dados reais do seu pet aparecerão.</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="font-semibold text-sm mb-3">Escolha um plano</div>
+        <div className="border rounded-lg p-3 flex justify-between items-center mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-xs">Combo 1 — RG + Carteirinha + Certidão</div>
+            <div className="text-[10px] text-gray-500">Documentos completos do seu pet</div>
+          </div>
+          <div className="text-right ml-2">
+            <div className="font-bold text-sm">R$ {calcular(settings.price_combo1).toFixed(2)}</div>
+          </div>
+        </div>
+        <button onClick={comprar} disabled={processando} className="btn-primary w-full py-3 rounded-xl font-semibold mt-2">
+          {processando ? 'Aguarde...' : `💰 Comprar — R$ ${calcular(settings.price_combo1).toFixed(2)}`}
+        </button>
+        <button onClick={()=>setMostrarCupom(!mostrarCupom)} className="text-xs text-gray-600 underline mt-3 w-full text-center">{mostrarCupom ? 'Fechar cupom' : 'Tenho um cupom'}</button>
+        {mostrarCupom && (
+          <div className="flex gap-2 mt-2">
+            <input className="input-field text-sm" placeholder="Cupom" value={cupom} onChange={e=>setCupom(e.target.value)} />
+            <button onClick={aplicarCupom} className="btn-primary px-4 rounded-xl text-sm">Aplicar</button>
+          </div>
+        )}
+        {cupomAplicado && <div className="text-xs text-green-700 mt-2 text-center">Cupom {cupomAplicado.code} ({cupomAplicado.desconto}% off)</div>}
+      </div>
+
+      {pedidosPet.length > 0 && (
+        <div className="card">
+          <div className="font-semibold text-sm mb-2">Seus pedidos</div>
+          <div className="space-y-2">
+            {pedidosPet.map(p => (
+              <div key={p.id} className="flex justify-between items-center py-1 text-xs">
+                <div className="font-semibold">{p.tipo === 'combo1' ? 'Combo 1' : 'Combo 2 (QR)'}</div>
+                <div className="text-right">
+                  <div className="font-bold">R$ {Number(p.valor).toFixed(2)}</div>
+                  <div className={p.status==='pago'?'text-green-700':'text-yellow-700'}>{p.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="card">
+        <div className="text-xs font-bold mb-2" style={{color:'#8b7a4d'}}>PRÉVIA DO MODELO</div>
+        <RGDocumento pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
       </div>
     </div>
   );
@@ -1002,7 +1152,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
 
   const comprar = async (tipo) => {
     if (tipo === 'combo2' && !temCombo1) { alert('Adquira o Combo 1 antes do QR Code.'); return; }
-    if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nLá você escolhe a forma de pagamento (Pix, cartão ou boleto) e finaliza.\n\nApós o pagamento, você volta pro site automaticamente.\n\nDeseja continuar?')) return;
+    if (!window.confirm('Você será direcionado ao site do Mercado Pago para concluir o pagamento.\n\nDeseja continuar?')) return;
 
     setProcessando(true);
     const base = tipo === 'combo1' ? settings.price_combo1 : settings.price_combo2;
@@ -1062,90 +1212,111 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
         <button onClick={onBack} className="text-sm text-gray-500">← Voltar</button>
         <button onClick={onEdit} className="text-sm font-semibold px-3 py-1.5 rounded-full" style={{backgroundColor:'#fffefb', color:'#1a3c2e', border:'1px solid #e8dfc8'}}>✏️ Editar pet</button>
       </div>
-      <div className="mb-3"><RGDocumento pet={pet} tutor={user} /></div>
-      <div className="flex gap-2 mb-3">
-        <button onClick={marcarPerdido} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={pet.is_lost ? {backgroundColor:'#dc2626', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>⚠ Perdido</button>
-        <button onClick={marcarEmCasa} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={!pet.is_lost ? {backgroundColor:'#16a34a', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>✓ Em casa</button>
-      </div>
-      <div className="flex gap-1 mb-3 border-b overflow-x-auto">
-        {['documentos','pagamento','qrcode'].map(t => (
-          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>
-            {t === 'documentos' ? 'Documentos' : t === 'pagamento' ? 'Pagamento' : 'QR Code'}
-          </button>
-        ))}
-      </div>
-      {aba === 'documentos' && (
-        <div className="space-y-3">
-          <CarteiraVacinas pet={pet} />
-          <Certidao pet={pet} tutor={user} />
-        </div>
-      )}
-      {aba === 'pagamento' && (
-        <div className="space-y-3">
-          <div className="card">
-            <h2 className="font-bold text-sm mb-1">Novo pedido</h2>
-            <p className="text-xs text-gray-500 mb-3">Documento liberado após confirmação do pagamento.</p>
-            <div className="space-y-2">
-              <div className="border rounded-lg p-3 flex justify-between items-center">
-                <div className="font-semibold text-xs">Combo 1 — RG + Carteirinha + Certidão</div>
-                <div className="text-right ml-2">
-                  <div className="font-bold text-sm">R$ {calcular(settings.price_combo1).toFixed(2)}</div>
-                  {!temCombo1 && <button onClick={()=>comprar('combo1')} disabled={processando} className="btn-primary text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
-                  {temCombo1 && <span className="text-xs text-green-700">✓ Adquirido</span>}
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 flex justify-between items-center">
-                <div>
-                  <div className="font-semibold text-xs">Combo 2 — QR Code</div>
-                  <div className="text-xs text-gray-500">{temCombo1 ? 'Adicional plaquinha' : 'Requer Combo 1'}</div>
-                </div>
-                <div className="text-right ml-2">
-                  <div className="font-bold text-sm">R$ {calcular(settings.price_combo2).toFixed(2)}</div>
-                  {!temCombo2 && temCombo1 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
-                  {temCombo2 && <span className="text-xs text-green-700">✓ Adquirido</span>}
-                </div>
-              </div>
+
+      {!temCombo1 ? (
+        <>
+          <div className="card mb-3 flex items-center gap-3">
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+              {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'24px',color:'#d1d5db'}}>🐾</div>}
             </div>
-            <button onClick={()=>setMostrarCupom(!mostrarCupom)} className="text-xs text-gray-600 underline mt-3">{mostrarCupom ? 'Fechar cupom' : 'Tenho um cupom'}</button>
-            {mostrarCupom && (
-              <div className="flex gap-2 mt-2">
-                <input className="input-field text-sm" placeholder="Cupom" value={cupom} onChange={e=>setCupom(e.target.value)} />
-                <button onClick={aplicarCupom} className="btn-primary px-4 rounded-xl text-sm">Aplicar</button>
-              </div>
-            )}
-            {cupomAplicado && <div className="text-xs text-green-700 mt-2">Cupom {cupomAplicado.code} ({cupomAplicado.desconto}% off)</div>}
-            <div className="text-xs text-gray-500 mt-3 p-2 rounded-lg" style={{backgroundColor:'#faf6ec'}}>Modo: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-base truncate">{pet.nome}</div>
+              <div className="text-xs text-gray-500 truncate">{pet.raca||'—'} • {pet.porte||'—'}</div>
+            </div>
           </div>
-          {pedidosPet.length > 0 && (
-            <div>
-              <h3 className="font-bold text-sm mb-2">Meus pedidos</h3>
-              <div className="space-y-2">
-                {pedidosPet.map(p => (
-                  <div key={p.id} className="card flex justify-between items-center py-2">
-                    <div className="text-xs font-semibold">{p.tipo === 'combo1' ? 'Combo 1' : 'Combo 2 (QR)'}</div>
-                    <div className="text-right text-xs">
-                      <div className="font-bold">R$ {Number(p.valor).toFixed(2)}</div>
-                      <div className={p.status==='pago'?'text-green-700':'text-yellow-700'}>{p.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</div>
+          <BloqueioDocumentos user={user} pet={pet} orders={orders} coupons={coupons} settings={settings} onRefresh={onRefresh} />
+        </>
+      ) : (
+        <>
+          <div className="mb-3"><RGDocumento pet={pet} tutor={user} /></div>
+          <div className="flex gap-2 mb-3">
+            <button onClick={marcarPerdido} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={pet.is_lost ? {backgroundColor:'#dc2626', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>⚠ Perdido</button>
+            <button onClick={marcarEmCasa} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={!pet.is_lost ? {backgroundColor:'#16a34a', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>✓ Em casa</button>
+          </div>
+          <div className="flex gap-1 mb-3 border-b overflow-x-auto">
+            {['documentos','pagamento','qrcode'].map(t => (
+              <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>
+                {t === 'documentos' ? 'Documentos' : t === 'pagamento' ? 'Pagamento' : 'QR Code'}
+              </button>
+            ))}
+          </div>
+          {aba === 'documentos' && (
+            <div className="space-y-3">
+              <CarteiraVacinas pet={pet} />
+              <Certidao pet={pet} tutor={user} />
+            </div>
+          )}
+          {aba === 'pagamento' && (
+            <div className="space-y-3">
+              <div className="card">
+                <h2 className="font-bold text-sm mb-1">Novo pedido</h2>
+                <p className="text-xs text-gray-500 mb-3">Documento liberado após confirmação do pagamento.</p>
+                <div className="space-y-2">
+                  <div className="border rounded-lg p-3 flex justify-between items-center">
+                    <div className="font-semibold text-xs">Combo 1 — RG + Carteirinha + Certidão</div>
+                    <div className="text-right ml-2">
+                      <div className="font-bold text-sm">R$ {calcular(settings.price_combo1).toFixed(2)}</div>
+                      {!temCombo1 && <button onClick={()=>comprar('combo1')} disabled={processando} className="btn-primary text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
+                      {temCombo1 && <span className="text-xs text-green-700">✓ Adquirido</span>}
                     </div>
                   </div>
-                ))}
+                  <div className="border rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                      <div className="font-semibold text-xs">Combo 2 — QR Code</div>
+                      <div className="text-xs text-gray-500">{temCombo1 ? 'Adicional plaquinha' : 'Requer Combo 1'}</div>
+                    </div>
+                    <div className="text-right ml-2">
+                      <div className="font-bold text-sm">R$ {calcular(settings.price_combo2).toFixed(2)}</div>
+                      {!temCombo2 && temCombo1 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow text-xs px-3 py-1 rounded-lg mt-1">{processando ? '...' : 'Comprar'}</button>}
+                      {temCombo2 && <span className="text-xs text-green-700">✓ Adquirido</span>}
+                    </div>
+                  </div>
+                </div>
+                <button onClick={()=>setMostrarCupom(!mostrarCupom)} className="text-xs text-gray-600 underline mt-3">{mostrarCupom ? 'Fechar cupom' : 'Tenho um cupom'}</button>
+                {mostrarCupom && (
+                  <div className="flex gap-2 mt-2">
+                    <input className="input-field text-sm" placeholder="Cupom" value={cupom} onChange={e=>setCupom(e.target.value)} />
+                    <button onClick={aplicarCupom} className="btn-primary px-4 rounded-xl text-sm">Aplicar</button>
+                  </div>
+                )}
+                {cupomAplicado && <div className="text-xs text-green-700 mt-2">Cupom {cupomAplicado.code} ({cupomAplicado.desconto}% off)</div>}
+                <div className="text-xs text-gray-500 mt-3 p-2 rounded-lg" style={{backgroundColor:'#faf6ec'}}>Modo: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div>
               </div>
+              {pedidosPet.length > 0 && (
+                <div>
+                  <h3 className="font-bold text-sm mb-2">Meus pedidos</h3>
+                  <div className="space-y-2">
+                    {pedidosPet.map(p => (
+                      <div key={p.id} className="card flex justify-between items-center py-2">
+                        <div className="text-xs font-semibold">{p.tipo === 'combo1' ? 'Combo 1' : 'Combo 2 (QR)'}</div>
+                        <div className="text-right text-xs">
+                          <div className="font-bold">R$ {Number(p.valor).toFixed(2)}</div>
+                          <div className={p.status==='pago'?'text-green-700':'text-yellow-700'}>{p.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
-      {aba === 'qrcode' && (
-        <div className="card text-center">
-          {temCombo2 ? (
-            <>
-              <h2 className="font-bold text-base mb-3">QR Code de Emergência</h2>
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + pet.public_id)}`} className="mx-auto border rounded-xl p-2" />
-              <p className="text-xs text-gray-500 mt-3">Imprima e coloque na coleira.</p>
-            </>
-          ) : (
-            <div className="text-xs text-gray-600 py-6">Adquira o <strong>Combo 2</strong> para liberar o QR Code.</div>
+          {aba === 'qrcode' && (
+            <div className="card text-center">
+              {temCombo2 ? (
+                <>
+                  <h2 className="font-bold text-base mb-3">QR Code de Emergência</h2>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + pet.public_id)}`} className="mx-auto border rounded-xl p-2" />
+                  <p className="text-xs text-gray-500 mt-3">Imprima e coloque na coleira.</p>
+                </>
+              ) : (
+                <div className="text-xs text-gray-600 py-6">
+                  Adquira o <strong>Combo 2</strong> para liberar o QR Code de Emergência.
+                  {!temCombo2 && temCombo1 && <button onClick={()=>comprar('combo2')} disabled={processando} className="btn-yellow w-full py-2 rounded-lg text-sm mt-3">{processando ? '...' : `Comprar por R$ ${calcular(settings.price_combo2).toFixed(2)}`}</button>}
+                </div>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
@@ -1200,6 +1371,7 @@ const PublicPetView = ({ publicId }) => {
 
 const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [aba, setAba] = useState('pedidos');
+  const [filtroPedidos, setFiltroPedidos] = useState('todos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
   const [precos, setPrecos] = useState({ c1: settings.price_combo1, c2: settings.price_combo2 });
   const [tutores, setTutores] = useState([]);
@@ -1238,7 +1410,12 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     onRefresh();
   };
 
-  const pendentes = orders.filter(o => o.status === 'pendente');
+  const pedidosFiltrados = orders.filter(o => {
+    if (filtroPedidos === 'todos') return true;
+    if (filtroPedidos === 'pagos') return o.status === 'pago';
+    if (filtroPedidos === 'pendentes') return o.status === 'pendente';
+    return true;
+  });
 
   return (
     <div className="mobile-container p-4">
@@ -1254,12 +1431,19 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
             <div><div className="font-bold text-sm">Modo de pagamento</div><div className="text-xs text-gray-500">Atual: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div></div>
             <button onClick={toggleMode} className="px-4 py-2 rounded-xl text-white font-semibold text-xs" style={{backgroundColor: settings.payment_mode==='auto' ? '#16a34a' : '#ca8a04'}}>→ {settings.payment_mode==='auto'?'Manual':'Auto'}</button>
           </div>
-          <h2 className="font-bold text-sm mb-2">Pendentes ({pendentes.length})</h2>
-          {pendentes.length === 0 ? (
-            <div className="card text-xs text-gray-500 text-center">Nenhum pendente.</div>
+
+          <div className="flex gap-1 mb-3">
+            {[['todos','Todos'],['pagos','Pagos'],['pendentes','Pendentes']].map(([k,label]) => (
+              <button key={k} onClick={()=>setFiltroPedidos(k)} className="px-3 py-1.5 rounded-full text-xs font-semibold" style={filtroPedidos===k?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>{label}</button>
+            ))}
+          </div>
+
+          <h2 className="font-bold text-sm mb-2">Pedidos ({pedidosFiltrados.length})</h2>
+          {pedidosFiltrados.length === 0 ? (
+            <div className="card text-xs text-gray-500 text-center">Nenhum pedido.</div>
           ) : (
             <div className="space-y-2">
-              {pendentes.map(o => {
+              {pedidosFiltrados.map(o => {
                 const pet = pets.find(p => p.id===o.pet_id);
                 const t = tutores.find(t => t.id===o.tutor_id);
                 return (
@@ -1269,8 +1453,16 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                         <div className="font-semibold text-sm">{pet?.nome || '—'}</div>
                         <div className="text-xs text-gray-500">Tutor: {t?.nome || '—'}</div>
                         <div className="text-xs">{o.tipo==='combo1'?'Combo 1':'Combo 2 (QR)'} • R$ {Number(o.valor).toFixed(2)}</div>
+                        <div className="text-[10px] mt-1">
+                          <span className={o.status==='pago'?'text-green-700':'text-yellow-700'}>
+                            {o.status === 'pago' ? '✓ Pago' : '⏳ Pendente'}
+                          </span>
+                          {o.cupom && <span className="text-gray-400"> • Cupom: {o.cupom}</span>}
+                        </div>
                       </div>
-                      <button onClick={()=>aprovarPedido(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold ml-2">Aprovar</button>
+                      {o.status === 'pendente' && (
+                        <button onClick={()=>aprovarPedido(o.id)} className="btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold ml-2">Aprovar</button>
+                      )}
                     </div>
                   </div>
                 );
