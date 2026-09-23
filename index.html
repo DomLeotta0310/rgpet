@@ -916,7 +916,7 @@ const PreviewScreen = ({ onBack }) => {
 };
 
 // ============================================================
-//  >>> CONTINUA NA PARTE 2 <<<
+//  >>> FIM DA PARTE 1 - COLE A PARTE 2 AQUI EMBAIXO <<<
 // ============================================================
   const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
@@ -1235,10 +1235,13 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
   const tamanhoCm = parseFloat(tamanho);
   const [baixando, setBaixando] = useState(false);
 
+  const previewPx = tamanhoCm === 2 ? 150 : tamanhoCm === 2.5 ? 170 : tamanhoCm === 3 ? 190 : tamanhoCm === 4 ? 230 : 270;
+
   const imprimir = () => {
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups no seu navegador para imprimir.'); return; }
-    const fontCodigo = tamanhoCm <= 2 ? '6px' : tamanhoCm <= 2.5 ? '7px' : tamanhoCm <= 3 ? '8px' : tamanhoCm <= 4 ? '10px' : '12px';
+    const fontCodigo = tamanhoCm <= 2 ? '7pt' : tamanhoCm <= 2.5 ? '8pt' : tamanhoCm <= 3 ? '9pt' : tamanhoCm <= 4 ? '11pt' : '13pt';
+    const alturaTotal = tamanhoCm + 0.4;
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>QR Code — ${pet.nome}</title>
 <style>
@@ -1246,23 +1249,21 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff; padding: 20px; }
   .aviso { font-size: 11px; color: #666; margin-bottom: 20px; text-align: center; }
-  .placa {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: ${tamanhoCm}cm; height: ${tamanhoCm}cm;
-    background: white; border: 1px solid #ccc; padding: 0.15cm;
-    ${formato === 'redondo' ? 'border-radius: 50%;' : 'border-radius: 6px;'}
-  }
-  .qr { width: 100%; height: 100%; object-fit: contain; ${formato === 'redondo' ? 'border-radius: 50%;' : ''} }
-  .codigo { font-size: ${fontCodigo}; font-weight: bold; text-align: center; margin-top: 2px; color: #1a3c2e; letter-spacing: 0.3px; }
+  .placa { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1.5px solid #333; }
+  .placa.quadrado { width: ${tamanhoCm}cm; height: ${alturaTotal}cm; border-radius: 6px; padding: 0.12cm; }
+  .placa.redondo { width: ${tamanhoCm}cm; height: ${tamanhoCm}cm; border-radius: 50%; padding: 12%; }
+  .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
+  .placa.redondo .qr { width: 78%; }
+  .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.08cm; }
   .info { margin-top: 2cm; font-size: 12px; color: #333; text-align: center; line-height: 1.6; }
   .info b { color: #1a3c2e; }
 </style></head>
 <body>
-  <div class="aviso">🖨️ Na janela de impressão, escolha o tamanho ${tamanhoCm}cm x ${tamanhoCm}cm e formato ${formato}.<br/>Recorte na linha e plastifique.</div>
-  <div class="placa">
+  <div class="aviso">🖨️ Na janela de impressão, escolha tamanho real (100%) e corte na linha.<br/>Formato: ${formato} — ${tamanhoCm}cm.</div>
+  <div class="placa ${formato}">
     <img class="qr" src="${qrUrl}" />
+    <div class="codigo">${registroId}</div>
   </div>
-  <div class="codigo" style="font-size: ${fontCodigo}; margin-top: 4px;">${registroId}</div>
   <div class="info">
     <div><b>Pet:</b> ${pet.nome}</div>
     <div><b>Tutor:</b> ${tutor?.nome || '—'}</div>
@@ -1281,28 +1282,48 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
       img.crossOrigin = 'anonymous';
       await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = qrUrl; });
       const canvas = document.createElement('canvas');
-      const size = 600;
-      const codigoAlt = 70;
-      canvas.width = size;
-      canvas.height = size + codigoAlt;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      if (formato === 'redondo') {
+
+      if (formato === 'quadrado') {
+        const qrSize = 600;
+        const codigoAlt = 100;
+        canvas.width = qrSize;
+        canvas.height = qrSize + codigoAlt;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, qrSize, qrSize);
+        ctx.fillStyle = '#cc0000';
+        ctx.font = 'bold 46px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(registroId, qrSize/2, qrSize + codigoAlt/2);
+      } else {
+        const canvasSize = 800;
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+        const centro = canvasSize / 2;
+        const qrSize = 420;
+        const qrY = centro - qrSize/2 - 20;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(size/2, size/2, size/2 - 4, 0, Math.PI*2);
+        ctx.arc(centro, centro, centro - 20, 0, Math.PI*2);
         ctx.clip();
-        ctx.drawImage(img, 0, 0, size, size);
+        ctx.drawImage(img, (canvasSize - qrSize)/2, qrY, qrSize, qrSize);
+        ctx.fillStyle = '#cc0000';
+        ctx.font = 'bold 40px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(registroId, centro, qrY + qrSize + 50);
         ctx.restore();
-      } else {
-        ctx.drawImage(img, 0, 0, size, size);
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(centro, centro, centro - 20, 0, Math.PI*2);
+        ctx.stroke();
       }
-      ctx.fillStyle = '#1a3c2e';
-      ctx.font = 'bold 28px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(registroId, size/2, size + 34);
+
       const dataUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = dataUrl;
@@ -1341,16 +1362,14 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
           </div>
           <div className="py-6 mb-4 flex items-center justify-center" style={{backgroundColor:'#f5f5f5', borderRadius:'12px'}}>
             {formato === 'quadrado' ? (
-              <div style={{width:'200px', height:'200px', padding:'14px', backgroundColor:'#fff', boxShadow:'0 4px 20px rgba(0,0,0,0.1)', borderRadius:'10px', border:'1px solid #ddd'}}>
-                <img src={qrUrl} style={{width:'100%', height:'100%', objectFit:'contain'}} />
-                <div className="text-center font-bold mt-1" style={{color:'#1a3c2e', fontSize:'10px'}}>{registroId}</div>
+              <div style={{width: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'10px', padding:'10px 10px 0 10px', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
+                <img src={qrUrl} style={{width:'100%', aspectRatio:'1', objectFit:'contain', display:'block'}} />
+                <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'11px', padding:'6px 0', letterSpacing:'0.5px'}}>{registroId}</div>
               </div>
             ) : (
-              <div className="text-center">
-                <div style={{width:'200px', height:'200px', padding:'14px', backgroundColor:'#fff', borderRadius:'50%', boxShadow:'0 4px 20px rgba(0,0,0,0.1)', border:'1px solid #ddd'}}>
-                  <img src={qrUrl} style={{width:'100%', height:'100%', objectFit:'contain', borderRadius:'50%'}} />
-                </div>
-                <div className="font-bold mt-2" style={{color:'#1a3c2e', fontSize:'10px'}}>{registroId}</div>
+              <div style={{width: previewPx + 'px', height: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'50%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'14%', boxSizing:'border-box', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
+                <img src={qrUrl} style={{width:'78%', aspectRatio:'1', objectFit:'contain', display:'block'}} />
+                <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'9px', marginTop:'3px', letterSpacing:'0.3px'}}>{registroId}</div>
               </div>
             )}
           </div>
@@ -1358,7 +1377,7 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
             <button onClick={imprimir} className="btn-primary py-3 rounded-xl font-semibold text-sm">🖨️ Imprimir</button>
             <button onClick={baixarQR} disabled={baixando} className="py-3 rounded-xl font-semibold text-sm text-white" style={{backgroundColor:'#eab308'}}>{baixando ? 'Baixando...' : '⬇️ Baixar PNG'}</button>
           </div>
-          <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">Imprima no tamanho real ({tamanhoCm}cm × {tamanhoCm}cm), recorte e plastifique.<br/>O número embaixo do QR é o mesmo do RG do pet.</p>
+          <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">Imprima no tamanho real ({tamanhoCm}cm), recorte e plastifique.<br/>O número embaixo do QR é o mesmo do RG do pet.</p>
           <div className="border-t pt-3">
             <div className="label mb-1">Endereço para envio</div>
             {tutor?.endereco || tutor?.cidade ? (
@@ -1549,7 +1568,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm">{pet.nome}</div>
                       <div className="text-xs text-gray-500 truncate">Tutor: {t?.nome || '—'}</div>
-                      <div className="text-[11px] font-bold mt-1" style={{color:'#1a3c2e', letterSpacing:'0.5px'}}>📋 {pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div>
+                      <div className="text-[11px] font-bold mt-1" style={{color:'#cc0000', letterSpacing:'0.5px'}}>📋 {pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div>
                     </div>
                   </div>
                   <button onClick={()=>setQrPetSel(pet)} className="btn-primary w-full py-2 rounded-xl font-semibold text-sm">🏷️ Gerar QR Code Físico</button>
