@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { titulo, valor, petId, tipo, userEmail } = req.body;
+    const { titulo, valor, petId, tipo, orderId, userEmail } = req.body;
     const accessToken = process.env.MP_ACCESS_TOKEN;
 
     if (!accessToken) {
@@ -32,12 +32,12 @@ export default async function handler(req, res) {
         email: userEmail || 'comprador@email.com'
       },
       back_urls: {
-        success: 'https://domleotta0310.github.io/rgpet/?pagamento=sucesso&pet=' + petId + '&tipo=' + tipo,
-        failure: 'https://domleotta0310.github.io/rgpet/?pagamento=falha',
-        pending: 'https://domleotta0310.github.io/rgpet/?pagamento=pendente'
+        success: 'https://rgpet.vercel.app/?pagamento=sucesso&pet=' + petId + '&tipo=' + tipo,
+        failure: 'https://rgpet.vercel.app/?pagamento=falha',
+        pending: 'https://rgpet.vercel.app/?pagamento=pendente'
       },
       auto_return: 'approved',
-      external_reference: petId + '|' + tipo,
+      external_reference: String(orderId),
       notification_url: 'https://rgpet.vercel.app/api/webhook',
       statement_descriptor: 'RG PET'
     };
