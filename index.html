@@ -276,7 +276,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
         if (form.pin && form.pin.length !== 4) { setErro('O PIN precisa ter 4 dígitos'); setCarregando(false); return; }
         const { data: existe } = await sb.from('tutores').select('id').eq('email', form.email).maybeSingle();
         if (existe) { setErro('E-mail já cadastrado'); setCarregando(false); return; }
-        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null };
+        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin ? String(form.pin).trim() : null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null };
         const { data, error } = await sb.from('tutores').insert([novo]).select().single();
         if (error) { setErro('Erro ao cadastrar: ' + error.message); setCarregando(false); return; }
         onLogin(data);
@@ -418,8 +418,13 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
   };
   const handleKeyDown = (idx, e) => { if (e.key === 'Backspace' && !pin[idx] && idx > 0) inputsRef[idx-1].current && inputsRef[idx-1].current.focus(); };
   const validar = (codigo) => {
-    if (codigo === user.pin) { onUnlock(); }
-    else {
+    // CORREÇÃO MOBILE: Comparar como texto e limpar espaços extras
+    const codigoLimpo = String(codigo).trim();
+    const pinCorreto = String(user.pin).trim();
+    
+    if (codigoLimpo === pinCorreto) { 
+      onUnlock(); 
+    } else {
       const t = tentativas + 1; setTentativas(t);
       setErro(t >= 3 ? 'PIN incorreto. Use a senha completa.' : 'PIN incorreto. Tente novamente.');
       setPin(['','','','']);
@@ -435,7 +440,7 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
         <div className="text-xs text-gray-500 mb-6">Digite seu PIN de 4 dígitos</div>
         <div className="flex justify-center gap-3 mb-4">
           {[0,1,2,3].map(i => (
-            <input key={i} ref={inputsRef[i]} type="tel" inputMode="numeric" maxLength="1" className={`pin-input ${pin[i] ? 'filled' : ''}`} value={pin[i]} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)} />
+            <input key={i} ref={inputsRef[i]} type="tel" inputMode="numeric" autoComplete="off" maxLength="1" className={`pin-input ${pin[i] ? 'filled' : ''}`} value={pin[i]} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)} />
           ))}
         </div>
         {erro && <div className="text-xs text-red-600 mb-3">{erro}</div>}
@@ -476,7 +481,7 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   };
   const salvarPin = async () => {
     if (pin && pin.length !== 4) { alert('O PIN precisa ter 4 dígitos'); return; }
-    const { error } = await sb.from('tutores').update({ pin: pin || null }).eq('id', user.id);
+    const { error } = await sb.from('tutores').update({ pin: pin ? String(pin).trim() : null }).eq('id', user.id);
     if (error) { alert('Erro: ' + error.message); return; }
     onUpdate({ ...form, pin }); setPinSalvo(true); setTimeout(()=>setPinSalvo(false), 2000);
   };
@@ -1469,7 +1474,8 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 
       {aba === 'pedidos' && (
         <>
-          <div className="card mb-3 flex justify-between items-center">
+          <div className="card mb-3 flex justify-between
+           items-center">
             <div><div className="font-bold text-sm">Modo de pagamento</div><div className="text-xs text-gray-500">Atual: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div></div>
             <button onClick={toggleMode} className="px-4 py-2 rounded-xl text-white font-semibold text-xs" style={{backgroundColor: settings.payment_mode==='auto' ? '#16a34a' : '#ca8a04'}}>→ {settings.payment_mode==='auto'?'Manual':'Auto'}</button>
           </div>
