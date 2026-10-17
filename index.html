@@ -741,7 +741,7 @@ const Certidao = ({ pet, tutor }) => {
   );
 };
 
-const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
+const PetForm = ({ user, initialPet, onSaved, onCancel, codigoInicial }) => {
   const emEdicao = !!initialPet;
   const [form, setForm] = useState(initialPet ? {
     nome: initialPet.nome || '', raca: initialPet.raca || '', porte: initialPet.porte || '', idade: initialPet.idade || '',
@@ -749,10 +749,12 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
     castrado: initialPet.castrado || 'Não', peso: initialPet.peso || '', cor_pelagem: initialPet.cor_pelagem || '',
     local_nascimento: initialPet.local_nascimento || '', pai: initialPet.pai || '', mae: initialPet.mae || '',
     especie: initialPet.especie || '', microchip: initialPet.microchip || '', tem_microchip: initialPet.tem_microchip || false,
+    codigo_pingente: initialPet.public_id || '',
     saude: initialPet.saude || { doencas:'', alergias:'', medicamentos:'', tipoSanguineo:'', comportamento:'Dócil', observacoes:'' },
     emergencia: initialPet.emergencia || { nome:'', telefone:'', relacao:'' }
   } : {
     nome:'', raca:'', porte:'', idade:'', data_nascimento:'', foto:'', sexo:'Macho', castrado:'Não', peso:'', cor_pelagem:'', local_nascimento:'', pai:'', mae:'', especie:'', microchip:'', tem_microchip:false,
+    codigo_pingente: codigoInicial || '',
     saude: { doencas:'', alergias:'', medicamentos:'', tipoSanguineo:'', comportamento:'Dócil', observacoes:'' },
     emergencia: { nome:'', telefone:'', relacao:'' }
   });
@@ -764,13 +766,25 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
     if (!form.nome) { alert('Informe o nome do pet'); return; }
     if (!form.especie) { alert('Por favor, selecione se o pet é Cão ou Gato.'); return; }
     setSalvando(true);
+
+    let finalPublicId = emEdicao ? initialPet.public_id : 'pet_' + Math.random().toString(36).slice(2,8);
+
+    if (form.codigo_pingente && !emEdicao) {
+      const codigoLimpo = form.codigo_pingente.trim().toUpperCase();
+      if (codigoLimpo) {
+        const { data: existe } = await sb.from('pets').select('id').eq('public_id', codigoLimpo).maybeSingle();
+        if (existe) { alert('Este código de pingente já está em uso por outro pet.'); setSalvando(false); return; }
+        finalPublicId = codigoLimpo;
+      }
+    }
+
     if (emEdicao) {
       const { data, error } = await sb.from('pets').update({ nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas }).eq('id', initialPet.id).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
     } else {
       const registroId = 'CL-' + String(Date.now()).slice(-6) + '-' + Math.floor(Math.random()*900+100);
-      const pet = { id: Date.now(), tutor_id: user.id, public_id: 'pet_' + Math.random().toString(36).slice(2,8), registro_id: registroId, data_registro: new Date().toISOString(), nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: false };
+      const pet = { id: Date.now(), tutor_id: user.id, public_id: finalPublicId, registro_id: registroId, data_registro: new Date().toISOString(), nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: false };
       const { data, error } = await sb.from('pets').insert([pet]).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
@@ -794,6 +808,13 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
       <h1 className="text-xl font-bold mb-4">{emEdicao ? 'Editar pet' : 'Cadastrar novo pet'}</h1>
       <div className="card mb-3 space-y-3">
         <h2 className="font-semibold text-sm">Dados básicos</h2>
+        {!emEdicao && (
+          <div>
+            <div className="label">Código do Pingente (Opcional)</div>
+            <input className="input-field" placeholder="Ex: P-ABC123" value={form.codigo_pingente} onChange={e=>setForm({...form,codigo_pingente:e.target.value.toUpperCase()})} />
+            <p className="text-[10px] text-gray-500 mt-1">Preencha se você comprou um QR Code avulso.</p>
+          </div>
+        )}
         <div>
           <div className="label">Foto do pet</div>
           <div className="flex items-center gap-3">
@@ -895,7 +916,7 @@ const PetForm = ({ user, initialPet, onSaved, onCancel }) => {
           <div><div className="label">Nome</div><input className="input-field" value={form.emergencia.nome} onChange={e=>setForm({...form,emergencia:{...form.emergencia,nome:e.target.value}})} /></div>
           <div><div className="label">Relação</div><input className="input-field" placeholder="Mãe, vizinho..." value={form.emergencia.relacao} onChange={e=>setForm({...form,emergencia:{...form.emergencia,relacao:e.target.value}})} /></div>
         </div>
-        <div><div className="label">Telefone / WhatsApp</div><input className="input-field" value={form.emergencia.telefone} onChange={e=>setForm({...form,emergencia:{...form,emergencia,telefone:e.target.value}})} /></div>
+        <div><div className="label">Telefone / WhatsApp</div><input className="input-field" value={form.emergencia.telefone} onChange={e=>setForm({...form,emergencia:{...form.emergencia,telefone:e.target.value}})} /></div>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -1172,8 +1193,23 @@ const PublicPetView = ({ publicId }) => {
       setCarregando(false);
     })();
   }, [publicId]);
+  
   if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
-  if (!pet || !tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Pet não encontrado.</div></div>;
+  
+  if (!pet) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
+        <div className="w-full max-w-sm card text-center" style={{border:'4px solid #eab308'}}>
+           <div className="text-4xl mb-3">🏷️</div>
+           <h1 className="font-bold text-lg mb-2" style={{color:'#1a3c2e'}}>QR Code não ativado</h1>
+           <p className="text-sm text-gray-600 mb-5">Este código (<strong>{publicId}</strong>) ainda não foi vinculado a nenhum pet.</p>
+           <a href={`/?codigo=${publicId}`} className="btn-primary block w-full py-3 rounded-xl font-semibold text-sm">Ativar e Cadastrar Pet</a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Tutor não encontrado.</div></div>;
   const vacinas = pet.vaccinations || [];
   const saude = pet.saude || {};
   const emerg = pet.emergencia || {};
@@ -1459,6 +1495,37 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     window.open(`https://wa.me/${comFone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const gerarFolhaQR = () => {
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups no seu navegador para imprimir.'); return; }
+    
+    let html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Folha de 70 QR Codes Virgens</title>
+<style>
+  @page { margin: 10mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; padding: 10px; background: #fff; }
+  .item { display: flex; flex-direction: column; align-items: center; border: 1px dashed #ccc; padding: 5px; border-radius: 8px; page-break-inside: avoid; }
+  img { width: 100%; max-width: 110px; aspect-ratio: 1/1; object-fit: contain; }
+  .code { font-size: 11px; font-weight: 900; margin-top: 4px; color: #cc0000; letter-spacing: 0.5px; }
+  .brand { font-size: 7px; color: #666; margin-top: 2px; }
+</style></head><body>`;
+    
+    for (let i = 0; i < 70; i++) {
+      const code = 'P-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + code)}`;
+      html += `<div class="item">
+        <img src="${qrUrl}" />
+        <div class="code">${code}</div>
+        <div class="brand">RG Pet Cão Leotta</div>
+      </div>`;
+    }
+    
+    html += `<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 1000); }<\/script></body></html>`;
+    win.document.write(html);
+    win.document.close();
+  };
+
   return (
     <div className="mobile-container p-4">
       <h1 className="text-xl font-bold mb-4">Painel Admin</h1>
@@ -1568,6 +1635,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
       {aba === 'qrfisico' && (
         <>
           <div className="card mb-3">
+            <button onClick={gerarFolhaQR} className="btn-yellow w-full py-2.5 rounded-xl font-semibold mb-4 text-sm text-white" style={{backgroundColor:'#eab308'}}>🖨️ Imprimir Folha de 70 QR Codes Virgens</button>
             <div className="label mb-2">🔍 Buscar por número do RG ou nome</div>
             <input className="input-field" placeholder="Ex: CL-123456-789 ou Jack" value={buscaQR} onChange={e=>setBuscaQR(e.target.value)} />
             <p className="text-[10px] text-gray-500 mt-1">Digite o número que aparece embaixo do QR Code ou o nome do pet.</p>
@@ -1639,6 +1707,7 @@ const App = () => {
   const [verPet, setVerPet] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [msgPagamento, setMsgPagamento] = useState(null);
+  const [codigoInicial, setCodigoInicial] = useState(null);
 
   const carregarDados = async () => {
     const { data: petsData } = await sb.from('pets').select('*').order('id', { ascending: false });
@@ -1656,10 +1725,18 @@ const App = () => {
     const params = new URLSearchParams(window.location.search);
     const p = params.get('pet');
     const pagamento = params.get('pagamento');
+    const codigoParam = params.get('codigo');
+    
     if (p) setPublicId(p);
+    if (codigoParam) {
+      setCodigoInicial(codigoParam);
+      setView('login');
+      setRegisterMode(true);
+    }
     if (params.get('admin') === '1') setIsAdmin(true);
     if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Pagamento aprovado! Seus documentos foram liberados.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     else if (pagamento === 'falha' || pagamento === 'pendente') { setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
+    
     carregarDados();
     const saved = localStorage.getItem('rgpet_sessao');
     if (saved) {
@@ -1676,7 +1753,7 @@ const App = () => {
   }, []);
 
   const handleLogin = (u) => { setUser(u); setView('dashboard'); localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id })); };
-  const handleLogout = () => { setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); localStorage.removeItem('rgpet_sessao'); };
+  const handleLogout = () => { setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); setCodigoInicial(null); localStorage.removeItem('rgpet_sessao'); };
   const handleUnlockPin = async () => {
     const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
     const { data } = await sb.from('tutores').select('*').eq('id', saved.userId).maybeSingle();
@@ -1705,7 +1782,7 @@ const App = () => {
         <Dashboard user={user} pets={pets} orders={orders} onOpenPet={setPetSelecionado} onNewPet={()=>setView('newPet')} onVerPet={setVerPet} onEditPet={setPetEditando} carregando={carregando} />
       )}
       {view === 'newPet' && (
-        <PetForm user={user} onSaved={(p)=>{ carregarDados(); setPetSelecionado(p); setView('dashboard'); }} onCancel={()=>setView('dashboard')} />
+        <PetForm user={user} codigoInicial={codigoInicial} onSaved={(p)=>{ carregarDados(); setCodigoInicial(null); setPetSelecionado(p); setView('dashboard'); }} onCancel={()=>{setCodigoInicial(null);setView('dashboard');}} />
       )}
       {petEditando && (
         <PetForm user={user} initialPet={petEditando} onSaved={(p)=>{ carregarDados(); setPetEditando(null); setView('dashboard'); }} onCancel={()=>setPetEditando(null)} />
