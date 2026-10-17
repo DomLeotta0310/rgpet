@@ -949,7 +949,7 @@ const PreviewScreen = ({ onBack }) => {
 // ============================================================
 //  >>> FIM DA PARTE 1 - AGUARDE O "OK" PARA A PARTE 2 <<<
 // ============================================================
-   const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
+    const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [mostrarCupom, setMostrarCupom] = useState(false);
@@ -1461,6 +1461,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [loteLetra, setLoteLetra] = useState('A');
   const [formatoFolha, setFormatoFolha] = useState('redondo');
   const [tamanhoFolha, setTamanhoFolha] = useState('3');
+  const [quantidadeFolha, setQuantidadeFolha] = useState('70');
 
   useEffect(() => {
     (async () => {
@@ -1505,35 +1506,34 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     
     const isRedondo = formatoFolha === 'redondo';
     const tamanhoCm = parseFloat(tamanhoFolha);
+    const qtd = parseInt(quantidadeFolha) || 70;
     
     let html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Folha de 70 QR Codes - Lote ${loteLetra}</title>
+<html><head><meta charset="UTF-8"><title>Folha de QR Codes - Lote ${loteLetra}</title>
 <style>
-  @page { margin: 10mm; }
+  @page { margin: 5mm; } 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; padding: 10px; background: #fff; }
-  .item { display: flex; flex-direction: column; align-items: center; border: ${isRedondo ? 'none' : '1px dashed #ccc'}; padding: 5px; page-break-inside: avoid; }
+  body { font-family: Arial, sans-serif; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 5px; background: #fff; }
+  .item { display: flex; flex-direction: column; align-items: center; page-break-inside: avoid; }
   .placa { 
     display: flex; flex-direction: column; align-items: center; justify-content: center; 
-    background: #fff; border: 1.5px solid #333; 
+    background: #fff; border: ${isRedondo ? '1px solid #333' : '1px dashed #ccc'}; 
     width: ${tamanhoCm}cm; height: ${isRedondo ? tamanhoCm : tamanhoCm + 0.4}cm; 
-    border-radius: ${isRedondo ? '50%' : '6px'}; 
-    padding: ${isRedondo ? '8%' : '0.12cm'};
+    border-radius: ${isRedondo ? '50%' : '4px'}; 
+    padding: ${isRedondo ? '8%' : '2px'};
   }
-  .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; ${isRedondo ? 'width: 88%;' : ''} }
+  .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; ${isRedondo ? 'width: 85%;' : ''} }
   .codigo { font-size: ${tamanhoCm <= 2 ? '6pt' : tamanhoCm <= 2.5 ? '7pt' : tamanhoCm <= 3 ? '8pt' : tamanhoCm <= 4 ? '9pt' : '11pt'}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.05cm; white-space: nowrap; margin-top: 2px; }
-  .brand { font-size: 7px; color: #666; margin-top: 2px; text-align: center; }
 </style></head><body>`;
     
-    for (let i = 1; i <= 70; i++) {
-      const code = `LOTE-${loteLetra}-${String(i).padStart(2, '0')}`;
+    for (let i = 1; i <= qtd; i++) {
+      const code = `CL-${loteLetra}-${String(i).padStart(2, '0')}`;
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + code)}`;
       html += `<div class="item">
         <div class="placa">
           <img class="qr" src="${qrUrl}" />
           <div class="codigo">${code}</div>
         </div>
-        <div class="brand">RG Pet Cão Leotta</div>
       </div>`;
     }
     
@@ -1652,10 +1652,14 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
         <>
           <div className="card mb-3 space-y-3">
             <h2 className="font-bold text-sm text-center">Fabricar Lote PetFiQ</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <div className="label">Lote</div>
-                <input className="input-field" maxLength="1" placeholder="A" value={loteLetra} onChange={e=>setLoteLetra(e.target.value.toUpperCase())} />
+                <input className="input-field text-center" maxLength="1" placeholder="A" value={loteLetra} onChange={e=>setLoteLetra(e.target.value.toUpperCase())} />
+              </div>
+              <div>
+                <div className="label">Qtd.</div>
+                <input type="number" className="input-field text-center" placeholder="70" value={quantidadeFolha} onChange={e=>setQuantidadeFolha(e.target.value)} />
               </div>
               <div>
                 <div className="label">Tamanho</div>
@@ -1675,7 +1679,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                 <button onClick={()=>setFormatoFolha('redondo')} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={formatoFolha==='redondo'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>⚫ Redondo</button>
               </div>
             </div>
-            <button onClick={gerarFolhaQR} className="btn-yellow w-full py-3 rounded-xl font-semibold text-sm text-white mt-2" style={{backgroundColor:'#eab308'}}>🖨️ Imprimir Folha de 70 QR Codes</button>
+            <button onClick={gerarFolhaQR} className="btn-yellow w-full py-3 rounded-xl font-semibold text-sm text-white mt-2" style={{backgroundColor:'#eab308'}}>🖨️ Imprimir Folha de QR Codes</button>
           </div>
 
           <div className="card mb-3">
@@ -1876,4 +1880,4 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
-</html> 
+</html>
