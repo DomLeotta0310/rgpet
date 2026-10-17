@@ -685,14 +685,6 @@ const CarteiraVacinas = ({ pet }) => {
 
 const Certidao = ({ pet, tutor }) => {
   const historia = buscarHistoriaRaca(pet.raca);
-  let historiaCorrigida = historia;
-  if (historia) {
-    if (pet.especie === 'Gato') {
-      historiaCorrigida = historia.replace(/\bcães\b/gi, 'gatos').replace(/\bcão\b/gi, 'gato');
-    } else if (pet.especie === 'Cão') {
-      historiaCorrigida = historia.replace(/\bgatos\b/gi, 'cães').replace(/\bgato\b/gi, 'cão');
-    }
-  }
   const dataReg = pet.data_registro ? new Date(pet.data_registro).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
   const dataNasc = pet.data_nascimento ? new Date(pet.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR') : (pet.idade || '—');
   const Campo = ({ label, valor }) => (
@@ -723,13 +715,13 @@ const Certidao = ({ pet, tutor }) => {
         <Campo label="Tutor / Responsável" valor={tutor.nome} />
         <Campo label="Data de registro" valor={dataReg} />
       </div>
-      {historiaCorrigida && (
+      {historia && (
         <div className="mt-5 pt-4" style={{borderTop:'1px solid #d9cba3'}}>
           <div className="flex items-center gap-2 mb-3">
             <span style={{fontSize:'14px'}}>📖</span>
             <div className="text-[11px] tracking-[0.15em] font-bold" style={{color:'#8b7a4d'}}>SOBRE A RAÇA — {pet.raca?.toUpperCase()}</div>
           </div>
-          <p className="text-xs font-medium" style={{color:'#1a1a1a', lineHeight:'1.65', textAlign:'justify'}}>{historiaCorrigida}</p>
+          <p className="text-xs font-medium" style={{color:'#1a1a1a', lineHeight:'1.65', textAlign:'justify'}}>{historia}</p>
         </div>
       )}
       <div className="text-center mt-6 pt-4" style={{borderTop:'1px solid #d9cba3'}}>
@@ -925,7 +917,7 @@ const PreviewScreen = ({ onBack }) => {
 };
 
 // ============================================================
-//  >>> FIM DA PARTE 1 - VÁ PARA A PARTE 2 <<<
+//  >>> FIM DA PARTE 1 - COLE A PARTE 2 AQUI EMBAIXO <<<
 // ============================================================
   const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
@@ -1145,8 +1137,97 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
                 </>
               ) : (
                 <div className="text-xs text-gray-600 py-6">
-                  Adquira o <
-                  const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
+                  Adquira o <strong>Combo 2</strong> para liberar o QR Code de Emergência.
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+const PublicPetView = ({ publicId }) => {
+  const [pet, setPet] = useState(null);
+  const [tutor, setTutor] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const { data: petData } = await sb.from('pets').select('*').eq('public_id', publicId).maybeSingle();
+      if (petData) {
+        setPet(petData);
+        const { data: tutorData } = await sb.from('tutores').select('*').eq('id', petData.tutor_id).maybeSingle();
+        setTutor(tutorData);
+      }
+      setCarregando(false);
+    })();
+  }, [publicId]);
+  if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
+  if (!pet || !tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Pet não encontrado.</div></div>;
+  const vacinas = pet.vaccinations || [];
+  const saude = pet.saude || {};
+  const emerg = pet.emergencia || {};
+  const vacinasStatus = vacinas.map(v => calcularStatusVacina(v.data));
+  const temVencida = vacinasStatus.some(s => s.label === 'Vencida');
+  const temAtencao = vacinasStatus.some(s => s.label === 'Atenção');
+  const vacinasEmDia = vacinas.length > 0 && !temVencida && !temAtencao;
+  const temInfoSaude = saude.doencas || saude.alergias || saude.medicamentos || saude.tipoSanguineo || saude.comportamento || saude.observacoes;
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
+      <div className="w-full max-w-sm">
+        <div className="card" style={{border:'4px solid #1a3c2e'}}>
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-3" style={{backgroundColor:'#eab308'}}>🐾</div>
+            {pet.is_lost && (
+              <div className="text-white text-center p-4 rounded-xl mb-4" style={{backgroundColor:'#dc2626'}}>
+                <div className="font-extrabold text-lg tracking-wider mb-2">🐾 ESTOU PERDIDO</div>
+                <div className="text-sm font-semibold leading-snug">Se você me encontrou,<br/>avise meus pais</div>
+                <div className="text-[11px] mt-2 leading-snug" style={{color:'#fee2e2'}}>Tenho problemas de saúde e preciso voltar pra casa</div>
+              </div>
+            )}
+            <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-2" style={{border:'4px solid #eab308'}}>
+              {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'32px',color:'#d1d5db'}}>🐾</div>}
+            </div>
+            <div className="font-bold text-base">{pet.nome}</div>
+            <div className="text-xs text-gray-500">{pet.raca||'—'} • {pet.porte||'—'} {pet.sexo?'• '+pet.sexo:''}</div>
+            {pet.cor_pelagem && <div className="text-xs text-gray-500 mt-0.5">Cor: {pet.cor_pelagem}</div>}
+          </div>
+          {vacinas.length > 0 && (
+            <div className="mt-3 p-2 rounded-lg text-center text-xs font-semibold" style={{backgroundColor: vacinasEmDia ? '#dcfce7' : '#fee2e2', color: vacinasEmDia ? '#15803d' : '#b91c1c'}}>
+              {vacinasEmDia ? '💉 Vacinas em dia' : (temVencida ? '⚠ Vacinas: tem vacina vencida' : '⚠ Vacinas: atenção')}
+            </div>
+          )}
+          {temInfoSaude && (
+            <div className="mt-3 rounded-lg p-3" style={{backgroundColor:'#faf6ec', border:'1px solid #e8dfc8'}}>
+              <div className="text-[10px] tracking-[0.2em] font-bold mb-2" style={{color:'#8b7a4d'}}>SAÚDE DO PET</div>
+              <div className="space-y-1 text-xs">
+                {saude.comportamento && <div><span className="text-gray-500">Comportamento:</span> <strong>{saude.comportamento}</strong></div>}
+                {saude.doencas && <div><span className="text-gray-500">Doenças/Condições:</span> {saude.doencas}</div>}
+                {saude.alergias && <div><span className="text-gray-500">Alergias:</span> {saude.alergias}</div>}
+                {saude.medicamentos && <div><span className="text-gray-500">Medicamentos:</span> {saude.medicamentos}</div>}
+                {saude.tipoSanguineo && <div><span className="text-gray-500">Tipo sanguíneo:</span> {saude.tipoSanguineo}</div>}
+                {saude.observacoes && <div><span className="text-gray-500">Obs:</span> {saude.observacoes}</div>}
+              </div>
+            </div>
+          )}
+          <div className="space-y-2 mt-4">
+            <a href={`tel:${tutor.telefone}`} className="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm" style={{display:'flex'}}>📞 Ligar para o tutor</a>
+            <a href={`https://wa.me/55${(tutor.whatsapp||'').replace(/\D/g,'')}`} target="_blank" className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-white text-sm" style={{backgroundColor:'#25D366', display:'flex'}}>💬 Chamar no WhatsApp</a>
+          </div>
+          {(emerg.nome || emerg.telefone) && (
+            <div className="mt-3 pt-3 border-t text-xs text-gray-600 text-center leading-relaxed">
+              Não conseguiu falar com o tutor?<br/>
+              Ligue para <strong>{emerg.nome}</strong>{emerg.relacao ? ` (${emerg.relacao})` : ''}: <strong>{emerg.telefone}</strong>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
   const [formato, setFormato] = useState('quadrado');
   const [tamanho, setTamanho] = useState('3');
   const publicUrl = `https://rgpet.vercel.app/?pet=${pet.public_id}`;
@@ -1160,7 +1241,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
   const imprimir = () => {
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups no seu navegador para imprimir.'); return; }
-    const fontCodigo = tamanhoCm <= 2 ? '6pt' : tamanhoCm <= 2.5 ? '7.5pt' : tamanhoCm <= 3 ? '9pt' : tamanhoCm <= 4 ? '11pt' : '14pt';
+    const fontCodigo = tamanhoCm <= 2 ? '7pt' : tamanhoCm <= 2.5 ? '8pt' : tamanhoCm <= 3 ? '9pt' : tamanhoCm <= 4 ? '11pt' : '13pt';
     const alturaTotal = tamanhoCm + 0.4;
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>QR Code — ${pet.nome}</title>
@@ -1171,10 +1252,10 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
   .aviso { font-size: 11px; color: #666; margin-bottom: 20px; text-align: center; }
   .placa { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; border: 1.5px solid #333; }
   .placa.quadrado { width: ${tamanhoCm}cm; height: ${alturaTotal}cm; border-radius: 6px; padding: 0.12cm; }
-  .placa.redondo { width: ${tamanhoCm}cm; height: ${tamanhoCm}cm; border-radius: 50%; padding: 10%; }
+  .placa.redondo { width: ${tamanhoCm}cm; height: ${tamanhoCm}cm; border-radius: 50%; padding: 12%; }
   .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; }
-  .placa.redondo .qr { width: 85%; }
-  .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.1cm; white-space: nowrap; }
+  .placa.redondo .qr { width: 78%; }
+  .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.08cm; }
   .info { margin-top: 2cm; font-size: 12px; color: #333; text-align: center; line-height: 1.6; }
   .info b { color: #1a3c2e; }
 </style></head>
@@ -1224,32 +1305,23 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvasSize, canvasSize);
         const centro = canvasSize / 2;
-        const raio = centro - 20;
-
-        const qrSize = canvasSize * 0.62;
-        const blocoTotalAltura = qrSize + 60;
-        const qrY = centro - (blocoTotalAltura / 2);
-        const textY = qrY + qrSize + 30;
-
+        const qrSize = 420;
+        const qrY = centro - qrSize/2 - 20;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(centro, centro, raio, 0, Math.PI*2);
+        ctx.arc(centro, centro, centro - 20, 0, Math.PI*2);
         ctx.clip();
-
-        ctx.drawImage(img, centro - qrSize/2, qrY, qrSize, qrSize);
-
+        ctx.drawImage(img, (canvasSize - qrSize)/2, qrY, qrSize, qrSize);
         ctx.fillStyle = '#cc0000';
-        const fontSize = Math.round(28 + (tamanhoCm - 2) * 5.5);
-        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.font = 'bold 40px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(registroId, centro, textY);
-
+        ctx.fillText(registroId, centro, qrY + qrSize + 50);
         ctx.restore();
         ctx.strokeStyle = '#333333';
         ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.arc(centro, centro, raio, 0, Math.PI*2);
+        ctx.arc(centro, centro, centro - 20, 0, Math.PI*2);
         ctx.stroke();
       }
 
@@ -1296,9 +1368,9 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
                 <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'11px', padding:'6px 0', letterSpacing:'0.5px'}}>{registroId}</div>
               </div>
             ) : (
-              <div style={{width: previewPx + 'px', height: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'50%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'10%', boxSizing:'border-box', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
-                <img src={qrUrl} style={{width:'85%', aspectRatio:'1', objectFit:'contain', display:'block'}} />
-                <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize: Math.max(7, tamanhoCm * 3) + 'px', marginTop:'4px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>{registroId}</div>
+              <div style={{width: previewPx + 'px', height: previewPx + 'px', backgroundColor:'#fff', border:'1.5px solid #333', borderRadius:'50%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'14%', boxSizing:'border-box', boxShadow:'0 4px 16px rgba(0,0,0,0.1)'}}>
+                <img src={qrUrl} style={{width:'78%', aspectRatio:'1', objectFit:'contain', display:'block'}} />
+                <div style={{textAlign:'center', fontWeight:900, color:'#cc0000', fontSize:'9px', marginTop:'3px', letterSpacing:'0.3px'}}>{registroId}</div>
               </div>
             )}
           </div>
