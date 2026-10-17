@@ -810,8 +810,8 @@ const PetForm = ({ user, initialPet, onSaved, onCancel, codigoInicial }) => {
         <h2 className="font-semibold text-sm">Dados básicos</h2>
         {!emEdicao && (
           <div>
-            <div className="label">Código do Pingente (Opcional)</div>
-            <input className="input-field" placeholder="Ex: P-ABC123" value={form.codigo_pingente} onChange={e=>setForm({...form,codigo_pingente:e.target.value.toUpperCase()})} />
+            <div className="label" style={{color:'#cc0000'}}>🔗 Código do PetFiQ (Pingente)</div>
+            <input className="input-field" placeholder="Ex: LOTE-A-01" value={form.codigo_pingente} onChange={e=>setForm({...form,codigo_pingente:e.target.value.toUpperCase()})} style={{borderColor: form.codigo_pingente ? '#cc0000' : '#e8dfc8'}} />
             <p className="text-[10px] text-gray-500 mt-1">Preencha se você comprou um QR Code avulso.</p>
           </div>
         )}
@@ -949,7 +949,7 @@ const PreviewScreen = ({ onBack }) => {
 // ============================================================
 //  >>> FIM DA PARTE 1 - AGUARDE O "OK" PARA A PARTE 2 <<<
 // ============================================================
-    const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
+   const BloqueioDocumentos = ({ user, pet, orders, coupons, settings, onRefresh }) => {
   const [cupom, setCupom] = useState('');
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [mostrarCupom, setMostrarCupom] = useState(false);
@@ -1457,6 +1457,10 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [tutores, setTutores] = useState([]);
   const [qrPetSel, setQrPetSel] = useState(null);
   const [buscaQR, setBuscaQR] = useState('');
+  
+  const [loteLetra, setLoteLetra] = useState('A');
+  const [formatoFolha, setFormatoFolha] = useState('redondo');
+  const [tamanhoFolha, setTamanhoFolha] = useState('3');
 
   useEffect(() => {
     (async () => {
@@ -1499,24 +1503,36 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups no seu navegador para imprimir.'); return; }
     
+    const isRedondo = formatoFolha === 'redondo';
+    const tamanhoCm = parseFloat(tamanhoFolha);
+    
     let html = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Folha de 70 QR Codes Virgens</title>
+<html><head><meta charset="UTF-8"><title>Folha de 70 QR Codes - Lote ${loteLetra}</title>
 <style>
   @page { margin: 10mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; padding: 10px; background: #fff; }
-  .item { display: flex; flex-direction: column; align-items: center; border: 1px dashed #ccc; padding: 5px; border-radius: 8px; page-break-inside: avoid; }
-  img { width: 100%; max-width: 110px; aspect-ratio: 1/1; object-fit: contain; }
-  .code { font-size: 11px; font-weight: 900; margin-top: 4px; color: #cc0000; letter-spacing: 0.5px; }
-  .brand { font-size: 7px; color: #666; margin-top: 2px; }
+  .item { display: flex; flex-direction: column; align-items: center; border: ${isRedondo ? 'none' : '1px dashed #ccc'}; padding: 5px; page-break-inside: avoid; }
+  .placa { 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    background: #fff; border: 1.5px solid #333; 
+    width: ${tamanhoCm}cm; height: ${isRedondo ? tamanhoCm : tamanhoCm + 0.4}cm; 
+    border-radius: ${isRedondo ? '50%' : '6px'}; 
+    padding: ${isRedondo ? '8%' : '0.12cm'};
+  }
+  .qr { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; ${isRedondo ? 'width: 88%;' : ''} }
+  .codigo { font-size: ${tamanhoCm <= 2 ? '6pt' : tamanhoCm <= 2.5 ? '7pt' : tamanhoCm <= 3 ? '8pt' : tamanhoCm <= 4 ? '9pt' : '11pt'}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.05cm; white-space: nowrap; margin-top: 2px; }
+  .brand { font-size: 7px; color: #666; margin-top: 2px; text-align: center; }
 </style></head><body>`;
     
-    for (let i = 0; i < 70; i++) {
-      const code = 'P-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + code)}`;
+    for (let i = 1; i <= 70; i++) {
+      const code = `LOTE-${loteLetra}-${String(i).padStart(2, '0')}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + code)}`;
       html += `<div class="item">
-        <img src="${qrUrl}" />
-        <div class="code">${code}</div>
+        <div class="placa">
+          <img class="qr" src="${qrUrl}" />
+          <div class="codigo">${code}</div>
+        </div>
         <div class="brand">RG Pet Cão Leotta</div>
       </div>`;
     }
@@ -1634,8 +1650,35 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 
       {aba === 'qrfisico' && (
         <>
+          <div className="card mb-3 space-y-3">
+            <h2 className="font-bold text-sm text-center">Fabricar Lote PetFiQ</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="label">Lote</div>
+                <input className="input-field" maxLength="1" placeholder="A" value={loteLetra} onChange={e=>setLoteLetra(e.target.value.toUpperCase())} />
+              </div>
+              <div>
+                <div className="label">Tamanho</div>
+                <select className="input-field" value={tamanhoFolha} onChange={e=>setTamanhoFolha(e.target.value)}>
+                  <option value="2">2 cm</option>
+                  <option value="2.5">2.5 cm</option>
+                  <option value="3">3 cm</option>
+                  <option value="4">4 cm</option>
+                  <option value="5">5 cm</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div className="label">Formato</div>
+              <div className="flex gap-2">
+                <button onClick={()=>setFormatoFolha('quadrado')} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={formatoFolha==='quadrado'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>⬛ Quadrado</button>
+                <button onClick={()=>setFormatoFolha('redondo')} className="flex-1 py-2 rounded-xl text-sm font-semibold" style={formatoFolha==='redondo'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>⚫ Redondo</button>
+              </div>
+            </div>
+            <button onClick={gerarFolhaQR} className="btn-yellow w-full py-3 rounded-xl font-semibold text-sm text-white mt-2" style={{backgroundColor:'#eab308'}}>🖨️ Imprimir Folha de 70 QR Codes</button>
+          </div>
+
           <div className="card mb-3">
-            <button onClick={gerarFolhaQR} className="btn-yellow w-full py-2.5 rounded-xl font-semibold mb-4 text-sm text-white" style={{backgroundColor:'#eab308'}}>🖨️ Imprimir Folha de 70 QR Codes Virgens</button>
             <div className="label mb-2">🔍 Buscar por número do RG ou nome</div>
             <input className="input-field" placeholder="Ex: CL-123456-789 ou Jack" value={buscaQR} onChange={e=>setBuscaQR(e.target.value)} />
             <p className="text-[10px] text-gray-500 mt-1">Digite o número que aparece embaixo do QR Code ou o nome do pet.</p>
@@ -1730,8 +1773,6 @@ const App = () => {
     if (p) setPublicId(p);
     if (codigoParam) {
       setCodigoInicial(codigoParam);
-      setView('login');
-      setRegisterMode(true);
     }
     if (params.get('admin') === '1') setIsAdmin(true);
     if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Pagamento aprovado! Seus documentos foram liberados.' }); setTimeout(() => setMsgPagamento(null), 8000); }
@@ -1745,20 +1786,44 @@ const App = () => {
         sb.from('tutores').select('*').eq('id', s.userId).maybeSingle().then(({ data }) => {
           if (data) {
             if (data.pin) { setNeedPin(true); setPinUser(data); }
-            else { setUser(data); setView('dashboard'); }
+            else { 
+              setUser(data); 
+              setView(codigoParam ? 'newPet' : 'dashboard'); 
+            }
           }
         });
       } catch {}
+    } else {
+      if (codigoParam) {
+        setView('login');
+        setRegisterMode(true);
+      }
     }
   }, []);
 
-  const handleLogin = (u) => { setUser(u); setView('dashboard'); localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id })); };
+  const handleLogin = (u) => { 
+    setUser(u); 
+    localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id })); 
+    if (codigoInicial) {
+      setView('newPet');
+    } else {
+      setView('dashboard'); 
+    }
+  };
+
   const handleLogout = () => { setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); setCodigoInicial(null); localStorage.removeItem('rgpet_sessao'); };
+  
   const handleUnlockPin = async () => {
     const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
     const { data } = await sb.from('tutores').select('*').eq('id', saved.userId).maybeSingle();
-    if (data) { setUser(data); setView('dashboard'); setNeedPin(false); setPinUser(null); }
+    if (data) { 
+      setUser(data); 
+      setView(codigoInicial ? 'newPet' : 'dashboard'); 
+      setNeedPin(false); 
+      setPinUser(null); 
+    }
   };
+  
   const handleUsarSenha = () => { localStorage.removeItem('rgpet_sessao'); setNeedPin(false); setUser(null); setPinUser(null); setView('login'); };
 
   if (publicId) return <PublicPetView publicId={publicId} />;
@@ -1782,7 +1847,17 @@ const App = () => {
         <Dashboard user={user} pets={pets} orders={orders} onOpenPet={setPetSelecionado} onNewPet={()=>setView('newPet')} onVerPet={setVerPet} onEditPet={setPetEditando} carregando={carregando} />
       )}
       {view === 'newPet' && (
-        <PetForm user={user} codigoInicial={codigoInicial} onSaved={(p)=>{ carregarDados(); setCodigoInicial(null); setPetSelecionado(p); setView('dashboard'); }} onCancel={()=>{setCodigoInicial(null);setView('dashboard');}} />
+        <PetForm user={user} codigoInicial={codigoInicial} onSaved={(p)=>{ 
+          carregarDados(); 
+          const isFromQR = !!codigoInicial;
+          setCodigoInicial(null);
+          setPetSelecionado(p); 
+          if (isFromQR) {
+            setView('profile'); 
+          } else {
+            setView('dashboard'); 
+          }
+        }} onCancel={()=>{setCodigoInicial(null);setView('dashboard');}} />
       )}
       {petEditando && (
         <PetForm user={user} initialPet={petEditando} onSaved={(p)=>{ carregarDados(); setPetEditando(null); setView('dashboard'); }} onCancel={()=>setPetEditando(null)} />
@@ -1801,4 +1876,4 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
-</html>
+</html> 
