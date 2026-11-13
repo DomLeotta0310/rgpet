@@ -183,20 +183,30 @@ const levenshtein = (a, b) => {
   return dp[m][n];
 };
 
-const buscarHistoriaRaca = (raca) => {
-  if (!raca) return null;
+const buscarHistoriaRaca = (raca, especie) => {
   const key = normalizar(raca);
-  if (!key || key.length < 3) return null;
-  for (const k in RACAS_DB) { if (key === normalizar(k)) return RACAS_DB[k]; }
-  for (const k in RACAS_DB) { const kNorm = normalizar(k); if (key.includes(kNorm) || kNorm.includes(key)) return RACAS_DB[k]; }
-  let melhor = null, melhorDist = Infinity;
-  for (const k in RACAS_DB) {
-    const kNorm = normalizar(k);
-    const d = levenshtein(key, kNorm);
-    const limite = Math.max(2, Math.floor(kNorm.length * 0.35));
-    if (d <= limite && d < melhorDist) { melhorDist = d; melhor = RACAS_DB[k]; }
+  const tipo = normalizar(especie);
+  const ehGato = ['gato', 'gata', 'felino', 'felina'].includes(tipo);
+  const ehCao = ['cao', 'cadela', 'cachorro', 'cachorra', 'canino', 'canina'].includes(tipo);
+  const animal = ehGato ? 'gatos' : ehCao ? 'cães' : 'cães e gatos';
+  const semRaca = ['srd', 'viralata', 'semracadefinida', 'semraca'].some(
+    termo => key.includes(termo)
+  );
+  if (semRaca) {
+    return 'SRD significa "Sem Raça Definida", também conhecido como vira-lata. A identificação se aplica a ' + animal + ' sem uma raça definida. Cada pet tem características e personalidade próprias.';
   }
-  return melhor;
+  if (!key) return null;
+  const racasGatos = ['persa', 'siamês', 'angorá'];
+  const candidatas = Object.keys(RACAS_DB).filter(nome => {
+    if (nome === 'srd' || nome === 'vira-lata') return false;
+    if (ehGato) return racasGatos.includes(nome);
+    if (ehCao) return !racasGatos.includes(nome);
+    return true;
+  });
+  // Only exact breed matches: similar names can describe different breeds.
+  const encontrada = candidatas.find(nome => normalizar(nome) === key);
+  if (encontrada) return RACAS_DB[encontrada];
+  return 'As informações de raça deste pet foram fornecidas pelo tutor. Ainda não há uma descrição específica para a raça cadastrada nesta certidão.';
 };
 
 const calcularStatusVacina = (dataAplicacao) => {
@@ -697,15 +707,7 @@ const CarteiraVacinas = ({ pet }) => {
 };
 
 const Certidao = ({ pet, tutor }) => {
-  const historia = buscarHistoriaRaca(pet.raca);
-  let historiaFinal = historia;
-  
-  if (historia && pet.especie) {
-    const especieCheck = pet.especie.toLowerCase().trim();
-    if (especieCheck.includes('gato') || especieCheck.includes('gata')) {
-      historiaFinal = historia.replace(/cães/gi, 'gatos').replace(/cão/gi, 'gato').replace(/cachorros/gi, 'gatos').replace(/cachorro/gi, 'gato');
-    }
-  }
+  const historiaFinal = buscarHistoriaRaca(pet.raca, pet.especie);
 
   const dataReg = pet.data_registro ? new Date(pet.data_registro).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR');
   const dataNasc = pet.data_nascimento ? new Date(pet.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR') : (pet.idade || '—');
