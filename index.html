@@ -1058,6 +1058,7 @@ const PreviewScreen = ({ onBack }) => {
 };
 
 const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, onEdit, initialTab }) => {
+  const [mostrarQRImpressao, setMostrarQRImpressao] = useState(false);
   const [aba, setAba] = useState(initialTab || 'documentos');
   const [cupom, setCupom] = useState('');
   const [cupomAplicado, setCupomAplicado] = useState(null);
@@ -1179,6 +1180,13 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
                   <h2 className="font-bold text-base mb-3">QR Code de Emergência</h2>
                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://rgpet.vercel.app/?pet=' + pet.public_id)}`} className="mx-auto border rounded-xl p-2" />
                   <p className="text-xs text-gray-500 mt-3">Imprima e coloque na coleira.</p>
+                  {pet.public_id ? (
+                    <button onClick={()=>setMostrarQRImpressao(true)} className="btn-primary w-full py-3 rounded-xl font-semibold text-sm mt-4">
+                      🖨️ Imprimir / Baixar QR Code
+                    </button>
+                  ) : (
+                    <p className="text-xs text-red-600 mt-3">Identificação do QR Code indisponível. Entre em contato com o suporte.</p>
+                  )}
                 </>
               ) : (
                 <div className="text-xs text-gray-600 py-6">
@@ -1188,6 +1196,9 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
             </div>
           )}
         </>
+      )}
+      {mostrarQRImpressao && temCombo1 && temCombo2 && pet.public_id && (
+        <QRCodeFisicoModal pet={pet} tutor={user} mostrarEndereco={false} onClose={()=>setMostrarQRImpressao(false)} />
       )}
     </div>
   );
@@ -1287,7 +1298,7 @@ const PublicPetView = ({ publicId }) => {
   );
 };
 
-const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
+const QRCodeFisicoModal = ({ pet, tutor, onClose, mostrarEndereco = true }) => {
   const [formato, setFormato] = useState('quadrado');
   const [tamanho, setTamanho] = useState('3');
   const publicUrl = `https://rgpet.vercel.app/?pet=${pet.public_id}`;
@@ -1445,7 +1456,7 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
             <button onClick={baixarQR} disabled={baixando} className="py-3 rounded-xl font-semibold text-sm text-white" style={{backgroundColor:'#eab308'}}>{baixando ? 'Baixando...' : '⬇️ Baixar PNG'}</button>
           </div>
           <p className="text-[10px] text-gray-500 text-center leading-relaxed mb-4">Imprima no tamanho real ({tamanhoCm}cm), recorte e plastifique.<br/>O número embaixo do QR é o mesmo do RG do pet.</p>
-          <div className="border-t pt-3">
+          {mostrarEndereco && <div className="border-t pt-3">
             <div className="label mb-1">Endereço para envio</div>
             {tutor?.endereco || tutor?.cidade ? (
               <div className="text-xs leading-relaxed" style={{color:'#1a3c2e'}}>
@@ -1457,7 +1468,7 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose }) => {
             ) : (
               <div className="text-xs text-gray-500">Tutor ainda não cadastrou o endereço.</div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
     </div>
