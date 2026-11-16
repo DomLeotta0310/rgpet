@@ -1329,6 +1329,12 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose, mostrarEndereco = true }) => {
   .codigo { font-size: ${fontCodigo}; font-weight: 900; text-align: center; color: #cc0000; letter-spacing: 0.5px; padding-top: 0.05cm; white-space: nowrap; }
   .info { margin-top: 2cm; font-size: 12px; color: #333; text-align: center; line-height: 1.6; }
   .info b { color: #1a3c2e; }
+  @media print {
+    html, body { height: auto; min-height: 0; }
+    body { display: block; padding: 0; }
+    .placa { margin: 0 auto; break-inside: avoid; }
+    .aviso, .info { break-inside: avoid; }
+  }
 </style></head>
 <body>
   <div class="aviso">🖨️ Na janela de impressão, escolha tamanho real (100%) e corte na linha.<br/>Formato: ${formato} — ${tamanhoCm}cm.</div>
