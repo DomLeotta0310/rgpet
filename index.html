@@ -678,7 +678,12 @@ const CarteiraVacinas = ({ pet }) => {
   const emerg = pet.emergencia || {};
   return (
     <div className="card border">
-      <div className="font-bold mb-3 text-sm" style={{color:'#1a3c2e'}}>CARTEIRA DE VACINAÇÃO</div>
+      <div className="text-center mb-4" style={{padding:'20px 12px 16px', border:'1px solid #d9cba3', borderRadius:'12px', backgroundColor:'#faf6e9', breakInside:'avoid'}}>
+        <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center mx-auto mb-3" style={{borderColor:'#c9b98a', backgroundColor:'#faf6e9'}}><span style={{fontSize:'20px'}} aria-hidden="true">🐾</span></div>
+        <div className="text-[10px] tracking-[0.25em] mb-1 font-bold" style={{color:'#8b7a4d'}}>PETFIQ · SAÚDE DO PET</div>
+        <h2 className="serif text-2xl font-bold" style={{color:'#0a0a0a', lineHeight:'1.2'}}>CARTEIRA DE<br/>VACINAÇÃO PET</h2>
+        <p className="text-xs mt-3 font-medium" style={{color:'#1a3c2e', lineHeight:'1.5'}}>Registro de vacinas e informações de saúde do seu pet.</p>
+      </div>
       <div className="text-center mb-3" style={{breakInside:'avoid'}}>
         <FotoPetDocumento pet={pet} />
         <div className="font-bold text-sm" style={{color:'#1a3c2e', overflowWrap:'anywhere'}}>{pet.nome}</div>
