@@ -124,6 +124,11 @@
   .documento-field-value { font-size: 13px; font-weight: 700; color: #0a0a0a; }
   .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1a3c2e; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .idade-pet-impressa { display: none; }
+  @media print {
+    .idade-pet-digital { display: none !important; }
+    .idade-pet-impressa { display: inline !important; }
+  }
 </style>
 </head>
 <body>
@@ -611,6 +616,67 @@ const ModoApresentacao = ({ pet, tutor, onClose }) => {
   );
 };
 
+// Calendar age: UTC civil dates avoid daylight-saving and date-only timezone shifts.
+const calcularIdadePet = (nascimento, hoje = new Date()) => {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(nascimento || '');
+  if (!partes) return null;
+  const [, a, m, d] = partes.map(Number);
+  const criar = (ano, mes, dia) => {
+    const data = new Date(0);
+    data.setUTCFullYear(ano, mes, dia);
+    data.setUTCHours(0, 0, 0, 0);
+    return data;
+  };
+  const inicio = criar(a, m - 1, d);
+  const fim = criar(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  if (a < 1 || inicio.getUTCFullYear() !== a || inicio.getUTCMonth() !== m - 1 ||
+      inicio.getUTCDate() !== d || inicio > fim || !Number.isFinite(+fim)) return null;
+  const aniversario = (ano, mes, dia) => {
+    const ultimo = criar(ano, mes + 1, 0).getUTCDate();
+    return criar(ano, mes, Math.min(dia, ultimo));
+  };
+  let anos = fim.getUTCFullYear() - a;
+  if (aniversario(a + anos, m - 1, d) > fim) anos--;
+  const base = aniversario(a + anos, m - 1, d);
+  let meses = (fim.getUTCFullYear() - base.getUTCFullYear()) * 12 + fim.getUTCMonth() - base.getUTCMonth();
+  const marco = n => aniversario(base.getUTCFullYear(), base.getUTCMonth() + n, base.getUTCDate());
+  if (marco(meses) > fim) meses--;
+  const dias = Math.round((fim - marco(meses)) / 86400000);
+  return { anos, meses, dias };
+};
+
+const formatarIdadePet = idade => {
+  const unidades = [[idade.anos, 'ano', 'anos'], [idade.meses, 'mês', 'meses'], [idade.dias, 'dia', 'dias']];
+  const partes = unidades.filter(([n]) => n > 0).map(([n, singular, plural]) => n + ' ' + (n === 1 ? singular : plural));
+  if (!partes.length) return '0 dias';
+  return partes.length > 1 ? partes.slice(0, -1).join(', ') + ' e ' + partes[partes.length - 1] : partes[0];
+};
+
+const IdadePet = ({ pet }) => {
+  const [hoje, setHoje] = useState(() => new Date());
+  useEffect(() => {
+    const atualizar = () => setHoje(new Date());
+    const intervalo = setInterval(atualizar, 60000);
+    window.addEventListener('focus', atualizar);
+    window.addEventListener('beforeprint', atualizar);
+    document.addEventListener('visibilitychange', atualizar);
+    return () => {
+      clearInterval(intervalo);
+      window.removeEventListener('focus', atualizar);
+      window.removeEventListener('beforeprint', atualizar);
+      document.removeEventListener('visibilitychange', atualizar);
+    };
+  }, []);
+  const idade = calcularIdadePet(pet.data_nascimento, hoje);
+  const legado = String(pet.idade || '').trim();
+  const anosLegados = /^(\d+)\s*anos?\b/i.exec(legado);
+  const anos = idade ? idade.anos : anosLegados ? Number(anosLegados[1]) : null;
+  return <React.Fragment>
+    <span className="idade-pet-digital">{idade ? formatarIdadePet(idade) : legado || '—'}</span>
+    <span className="idade-pet-impressa">{anos === null ? '—' : anos + (anos === 1 ? ' ano' : ' anos')}</span>
+  </React.Fragment>;
+};
+
 const RGDocumento = ({ pet, tutor }) => {
   const Campo = ({ label, valor }) => (
     <div className="documento-field">
@@ -646,7 +712,7 @@ const RGDocumento = ({ pet, tutor }) => {
         <div className="grid grid-cols-2 gap-2"><Campo label="Espécie" valor={pet.especie || 'Não informado'} /><Campo label="Raça" valor={pet.raca} /></div>
         <div className="grid grid-cols-2 gap-2"><Campo label="Sexo" valor={pet.sexo} /><Campo label="Porte" valor={pet.porte} /></div>
         <div className="grid grid-cols-2 gap-2"><Campo label="Peso" valor={pet.peso} /><Campo label="Castrado" valor={pet.castrado || 'Não'} /></div>
-        <div className="grid grid-cols-2 gap-2"><Campo label="Cor / Pelagem" valor={pet.cor_pelagem} /><Campo label="Idade" valor={pet.idade} /></div>
+        <div className="grid grid-cols-2 gap-2"><Campo label="Cor / Pelagem" valor={pet.cor_pelagem} /><Campo label="Idade" valor={<IdadePet pet={pet} />} /></div>
         {pet.tem_microchip && pet.microchip && (<div className="documento-field"><div className="documento-field-label">Microchip</div><div className="documento-field-value" style={{letterSpacing:'1px'}}>{pet.microchip}</div></div>)}
         <div className="documento-field"><div className="documento-field-label">Nº de Registro</div><div className="documento-field-value">{pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div></div>
         <div className="documento-field"><div className="documento-field-label">Endereço</div><div className="documento-field-value">{[tutor.endereco, tutor.cidade, tutor.uf, tutor.cep].filter(Boolean).join(', ') || '—'}</div></div>
