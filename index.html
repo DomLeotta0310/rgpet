@@ -1322,7 +1322,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
           </div>
           {aba === 'documentos' && (
             <div className="space-y-3">
-              <CarteiraVacinas pet={pet} tutor={tutor} />
+              <CarteiraVacinas pet={pet} tutor={user} />
               <Certidao pet={pet} tutor={user} />
               <CertificadoAdocao pet={pet} tutor={user} />
             </div>
