@@ -173,6 +173,7 @@
   }
 
 
+.pf-identidade-foto img {width:100%;height:100%;object-fit:cover;}
 /* PetfiQ: colecao visual aprovada — creme, verde floresta e dourado. */
 .documento-container { background:#fffbf0!important; border:3px double #aa821f!important; border-radius:2px!important; padding:32px 27px!important; color:#10351d; box-shadow:inset 0 0 0 6px #fffbf0,inset 0 0 0 8px #c49a3e; }
 .documento-container::before { inset:11px!important; border:1px solid #b58c30!important; border-radius:12px!important; }
@@ -728,7 +729,7 @@ const ModoApresentacao = ({ pet, tutor, onClose }) => {
         </div>
         <div className="space-y-3">
           <RGDocumento pet={pet} tutor={tutor} />
-          <CarteiraVacinas pet={pet} />
+          <CarteiraVacinas pet={pet} tutor={tutor} />
           <Certidao pet={pet} tutor={tutor} />
               <CertificadoAdocao pet={pet} tutor={tutor} />
         </div>
@@ -1141,7 +1142,7 @@ const PreviewScreen = ({ onBack }) => {
       </div>
       <div className="space-y-3 mb-4">
         <RGDocumento pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
-        <CarteiraVacinas pet={PET_FICTICIO} />
+        <CarteiraVacinas pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
         <Certidao pet={PET_FICTICIO} tutor={TUTOR_FICTICIO} />
       </div>
     </div>
@@ -1321,7 +1322,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
           </div>
           {aba === 'documentos' && (
             <div className="space-y-3">
-              <CarteiraVacinas pet={pet} />
+              <CarteiraVacinas pet={pet} tutor={tutor} />
               <Certidao pet={pet} tutor={user} />
               <CertificadoAdocao pet={pet} tutor={user} />
             </div>
