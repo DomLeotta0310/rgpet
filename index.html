@@ -563,7 +563,7 @@ const LandingPage = ({ onLoginClick, onRegisterClick }) => (
 
 const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   const [modo, setModo] = useState(initialRegister ? 'register' : 'login');
-  const [form, setForm] = useState({ nome: '', email: '', senha: '', pin: '' });
+  const [form, setForm] = useState({ nome: '', email: '', senha: '', pin: '', notificar_leitura_qr: false, notificar_pets_perdidos_regiao: false });
   const [resetEmail, setResetEmail] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [resetEtapa, setResetEtapa] = useState(1);
@@ -584,7 +584,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
         if (form.pin && form.pin.length !== 4) { setErro('O PIN precisa ter 4 dígitos'); setCarregando(false); return; }
         const { data: existe } = await sb.from('tutores').select('id').eq('email', form.email).maybeSingle();
         if (existe) { setErro('E-mail já cadastrado'); setCarregando(false); return; }
-        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null };
+        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true };
         const { data, error } = await sb.from('tutores').insert([novo]).select().single();
         if (error) { setErro('Erro ao cadastrar: ' + error.message); setCarregando(false); return; }
         onLogin(data);
@@ -665,6 +665,18 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
                   <div className="label">PIN de 4 dígitos (opcional)</div>
                   <input type="tel" inputMode="numeric" maxLength="4" className="input-field" placeholder="Ex: 1234" value={form.pin} onChange={e=>setForm({...form,pin:e.target.value.replace(/\D/g,'').slice(0,4)})} />
                   <p className="text-[10px] text-gray-500 mt-1">Com PIN, você entra rapidinho depois sem digitar senha.</p>
+                </div>
+                <div className="rounded-xl p-3 space-y-3" style={{background:'#f8f3e6',border:'1px solid #d7c69b'}}>
+                  <div className="font-semibold text-sm" style={{color:'#1a3c2e'}}>🔔 Avisos do PetfiQ (opcionais)</div>
+                  <label className="flex items-start gap-3 text-sm cursor-pointer">
+                    <input type="checkbox" className="mt-1" checked={form.notificar_leitura_qr===true} onChange={e=>setForm({...form,notificar_leitura_qr:e.target.checked})}/>
+                    <span>Quero receber avisos quando o QR Code de um dos meus pets for escaneado.</span>
+                  </label>
+                  <label className="flex items-start gap-3 text-sm cursor-pointer">
+                    <input type="checkbox" className="mt-1" checked={form.notificar_pets_perdidos_regiao===true} onChange={e=>setForm({...form,notificar_pets_perdidos_regiao:e.target.checked})}/>
+                    <span>Quero receber alertas de pets desaparecidos perto da minha região cadastrada.</span>
+                  </label>
+                  <p className="text-xs text-gray-600">Estes campos registram sua preferência. Os avisos automáticos serão ativados quando o serviço de notificações estiver pronto e autorizado no celular.</p>
                 </div>
                 {erro && <div className="text-xs text-red-600">{erro}</div>}
                 <button type="submit" disabled={carregando} className="btn-primary w-full py-3 rounded-xl font-semibold">{carregando ? 'Criando...' : 'Criar conta'}</button>
@@ -773,12 +785,12 @@ const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
 );
 
 const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
-  const [form, setForm] = useState(user);
+  const [form, setForm] = useState({...user, notificar_leitura_qr: user.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: user.notificar_pets_perdidos_regiao === true});
   const [salvo, setSalvo] = useState(false);
   const [pin, setPin] = useState(user.pin || '');
   const [pinSalvo, setPinSalvo] = useState(false);
   const salvar = async () => {
-    const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep }).eq('id', user.id);
+    const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true }).eq('id', user.id);
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
     onUpdate(form); setSalvo(true); setTimeout(()=>setSalvo(false), 2000);
   };
@@ -806,6 +818,18 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
         </div>
         <div><div className="label">CEP</div><input className="input-field" value={form.cep||''} onChange={e=>setForm({...form,cep:e.target.value})} /></div>
         <div><div className="label">E-mail da conta</div><input className="input-field bg-gray-50" value={form.email||''} disabled /></div>
+        <div className="rounded-xl p-3 space-y-3" style={{background:'#f8f3e6',border:'1px solid #d7c69b'}}>
+          <h2 className="font-semibold text-sm" style={{color:'#1a3c2e'}}>🔔 Preferências de notificação</h2>
+          <label className="flex items-start gap-3 text-sm cursor-pointer">
+            <input type="checkbox" className="mt-1" checked={form.notificar_leitura_qr===true} onChange={e=>setForm({...form,notificar_leitura_qr:e.target.checked})}/>
+            <span>Avisar quando o QR Code dos meus pets for escaneado.</span>
+          </label>
+          <label className="flex items-start gap-3 text-sm cursor-pointer">
+            <input type="checkbox" className="mt-1" checked={form.notificar_pets_perdidos_regiao===true} onChange={e=>setForm({...form,notificar_pets_perdidos_regiao:e.target.checked})}/>
+            <span>Receber alertas de pets desaparecidos na minha região.</span>
+          </label>
+          <p className="text-xs text-gray-600">Os alertas regionais usarão a cidade e o endereço cadastrados acima. Salvar estas preferências não ativa ainda os avisos no celular; o serviço de notificações será configurado em outra etapa.</p>
+        </div>
         <button onClick={salvar} className="btn-primary w-full py-3 rounded-xl font-semibold">{salvo ? '✓ Dados salvos!' : '💾 Salvar dados'}</button>
         <div className="border-t pt-3">
           <div className="label">PIN de acesso rápido (4 dígitos)</div>
