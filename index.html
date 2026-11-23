@@ -384,6 +384,31 @@
  .pub-acoes { flex-direction:column; }
  .pub-saude-linha { grid-template-columns:minmax(90px,40%) minmax(0,1fr); }
 }
+
+/* Vacinação pública: no celular, cada dose vira ficha completa sem cortar Veterinário. */
+@media (max-width:600px) {
+  .pub-tabela-scroll { overflow:visible; padding:10px; }
+  .pub-vacinas { min-width:0; width:100%; border-collapse:separate; border-spacing:0; }
+  .pub-vacinas thead { display:none; }
+  .pub-vacinas tbody, .pub-vacinas tr, .pub-vacinas td { display:block; width:100%; }
+  .pub-vacinas tr:not(.pub-vacinas-vazio) {
+    border:1px solid #c69d49; border-radius:10px;
+    background:#fffaf0; margin:0 0 10px; padding:4px 10px;
+  }
+  .pub-vacinas tr:not(.pub-vacinas-vazio) td {
+    display:grid; grid-template-columns:minmax(76px,34%) minmax(0,1fr);
+    gap:10px; align-items:baseline; padding:7px 0;
+    border-bottom:1px solid #e5d7ba; overflow-wrap:anywhere;
+  }
+  .pub-vacinas tr:not(.pub-vacinas-vazio) td:last-child { border-bottom:0; }
+  .pub-vacinas td[data-label]::before {
+    content:attr(data-label); font-weight:800; color:#0a532b;
+  }
+  .pub-vacinas .pub-vacinas-vazio td {
+    border:0; text-align:center; padding:14px 7px;
+    font-size:13px; font-style:italic;
+  }
+}
 </style>
 </head>
 <body>
@@ -1618,11 +1643,11 @@ const PublicPetView = ({ publicId }) => {
         <div className="pub-tabela-scroll">
           <table className="pub-vacinas"><thead><tr><th>Vacina</th><th>Aplicação</th><th>Reforço</th><th>Veterinário</th></tr></thead>
           <tbody>{vacinas.length ? vacinas.map((v,i)=><tr key={v.id||i}>
-            <td>{v.nome || 'Não informado'}</td>
-            <td>{fmtData(v.data)}</td>
-            <td>{fmtData(v.reforco || v.proxima_dose)}</td>
-            <td>{v.veterinario || 'Não informado'}</td>
-          </tr>) : <tr><td colSpan="4" className="pub-sem-registros">Nenhuma vacina cadastrada.</td></tr>}</tbody></table>
+            <td data-label="Vacina">{v.nome || 'Não informado'}</td>
+            <td data-label="Aplicação">{fmtData(v.data)}</td>
+            <td data-label="Reforço">{fmtData(v.reforco || v.proxima_dose)}</td>
+            <td data-label="Veterinário">{v.veterinario || 'Não informado'}</td>
+          </tr>) : <tr className="pub-vacinas-vazio"><td colSpan="4" className="pub-sem-registros">Nenhuma vacina cadastrada.</td></tr>}</tbody></table>
         </div>
         <p className="pub-nota-vac">Histórico informado pelo tutor. Confira as datas de reforço com o veterinário.</p>
       </section>
