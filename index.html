@@ -230,7 +230,7 @@
 .pf-adocao-identidade .documento-field-value { font-size:14px; }
 .pf-adocao-declaracao { font:italic 19px/1.5 Georgia,serif; text-align:center; border:2px solid #b99135; border-radius:20px; padding:18px; margin-top:20px; }
 .pf-adocao-seal { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:20px; text-align:center; }
-.pf-adocao-seal span { display:flex; align-items:center; justify-content:center; width:100px; height:100px; border:5px double #ad8528; border-radius:50%; font:700 14px Georgia,serif; transform:rotate(-13deg); }
+.pf-adocao-seal > span { display:flex; align-items:center; justify-content:center; width:100px; height:100px; border:5px double #ad8528; border-radius:50%; font:700 14px Georgia,serif; transform:rotate(-13deg); }
 .pf-adocao-seal strong { font:700 38px Georgia,serif; }
 .pf-note { text-align:center; color:#5f4b20; font-size:11px; margin-top:16px; }
 @media(max-width:480px) {
@@ -254,8 +254,13 @@
 /* QR e selo: alteração localizada; demais campos mantidos. */
 .pf-identidade-extras { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
 .pf-identidade-extras:has(.pf-selo-amor):not(:has(.pf-qr-documento)) { justify-content:center; }
-.pf-identidade-extras .pf-selo-amor { margin-left:auto; margin-right:auto; }
-.pf-selo-amor .pf-selo-icone { width:34px; height:42px; object-fit:contain; display:block; }
+.pf-identidade-extras .pf-selo-amor { margin-left:auto; margin-right:auto; align-self:center; }
+.pf-selo-amor .pf-selo-icone { width:34px; height:34px; object-fit:contain; display:block; flex:none; }
+.pf-selo-amor > span { display:block; width:auto; height:auto; border:0; border-radius:0; padding:0; margin:0; font:700 8px/1.1 Georgia,serif; color:#0a3b21; transform:none; white-space:nowrap; }
+.pf-adocao-seal > .pf-selo-amor { flex:0 0 78px; margin:0; }
+.pf-adocao-seal > div:nth-child(2) { flex:1; min-width:0; }
+.pf-adocao-seal > span:last-child { flex:0 0 38px; width:38px !important; height:auto !important; }
+
 .pf-selo-amor { transform:none !important; }
 .pf-selo-amor { width:78px; height:78px; flex-shrink:0; border:3px double #ae852c; border-radius:50%; color:#0a3b21; background:#fffbf0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:Georgia,serif; text-align:center; transform:rotate(-8deg); line-height:1.12; font-size:9px; font-weight:700; padding:4px; }
 .pf-selo-amor strong { font-size:10px; }
@@ -263,7 +268,7 @@
 .pf-qr-documento img { display:block; width:100%; aspect-ratio:1; }
 .pf-qr-documento span { font-size:8px; font-weight:800; color:#1a3c2e; text-align:center; }
 .pf-adocao-seal .pf-selo-amor { width:78px; height:78px; }
-@media(max-width:480px) { .pf-identidade-extras { gap:6px; } .pf-qr-documento { width:88px; padding:4px; } .pf-qr-documento span { font-size:7px; } .pf-selo-amor { width:65px; height:65px; font-size:8px; } .pf-selo-amor strong { font-size:9px; } }
+@media(max-width:480px) { .pf-identidade-extras { gap:6px; } .pf-qr-documento { width:88px; padding:4px; } .pf-qr-documento span { font-size:7px; } .pf-selo-amor { width:65px; height:65px; font-size:8px; } .pf-selo-amor .pf-selo-icone { width:27px; height:27px; } .pf-selo-amor > span { font-size:7px; } .pf-adocao-seal > .pf-selo-amor { flex-basis:65px; } .pf-selo-amor strong { font-size:9px; } }
 @media print { .pf-qr-documento,.pf-selo-amor { print-color-adjust:exact; -webkit-print-color-adjust:exact; break-inside:avoid; } }
 </style>
 </head>
