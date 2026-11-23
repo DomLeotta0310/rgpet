@@ -324,6 +324,66 @@
     margin:0 7px;
   }
 }
+
+/* Página pública de emergência PetfiQ: design inspirado na arte aprovada, sem alterar os documentos privados. */
+.pub-background { min-height:100vh; padding:12px; background:#f7f0e0; color:#173b2b; }
+.pub-documento { width:100%; max-width:820px; margin:0 auto; padding:25px 22px 28px; background:#fffbf0; border:5px double #bd9232; border-radius:20px; box-shadow:inset 0 0 0 7px #fffbf0,inset 0 0 0 8px #c99b3c; }
+.pub-cabecalho { text-align:center; margin:0 0 20px; }
+.pub-cabecalho .marca-documento { margin:0 auto 3px; }
+.pub-subtitulo { font:italic 14px Georgia,serif; margin:0; }
+.pub-alerta { background:#df2028; color:white; border-radius:16px; padding:18px 12px; text-align:center; margin:8px 0 18px; display:flex; flex-direction:column; gap:9px; }
+.pub-alerta strong { font:700 clamp(21px,4.5vw,30px)/1.2 Georgia,serif; }
+.pub-alerta span { font-size:15px; font-weight:600; }
+.pub-secao { border:1.5px solid #c39131; border-radius:15px; overflow:hidden; margin:12px 0; }
+.pub-faixa { background:linear-gradient(110deg,#074521,#0d6333,#073e21); color:white; font:700 clamp(16px,4vw,23px)/1.25 Georgia,serif; padding:9px 14px; text-align:left; margin:0; }
+.pub-identidade { display:grid; grid-template-columns:36% minmax(0,1fr); gap:16px; padding:13px 14px 7px; align-items:center; }
+.pub-foto { aspect-ratio:1; overflow:hidden; border:3px double #bc8f2b; border-radius:17px; display:flex; align-items:center; justify-content:center; background:#f1ead6; font-size:50px; }
+.pub-foto img { width:100%; height:100%; object-fit:cover; display:block; }
+.pub-principal { min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
+.pub-nome small,.pub-registro small { display:block; font-size:11px; font-weight:800; color:#28523b; margin-bottom:3px; }
+.pub-nome strong { display:block; font:700 clamp(23px,5vw,38px)/1.05 Georgia,serif; overflow-wrap:anywhere; color:#142f22; }
+.pub-registro { padding:9px 10px; border:1px solid #17432f; border-radius:9px; display:flex; flex-direction:column; }
+.pub-registro strong { font-size:15px; overflow-wrap:anywhere; }
+.pub-adotado { display:flex; justify-content:center; align-items:center; }
+.pub-adotado .pf-selo-final { width:68px; height:68px; flex:0 0 68px; }
+.pub-grade { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; padding:8px 14px 14px; }
+.pub-dado { min-width:0; padding:9px; border:1px solid #b69a57; border-radius:9px; background:#fffaf0; }
+.pub-dado span { display:block; font-size:10px; text-transform:uppercase; font-weight:800; color:#265038; }
+.pub-dado strong { display:block; font-size:13px; line-height:1.25; overflow-wrap:anywhere; color:#1a2820; }
+.pub-tabela-scroll { overflow-x:auto; padding:9px 10px 0; }
+.pub-vacinas { width:100%; border-collapse:collapse; min-width:470px; font-size:12px; text-align:left; }
+.pub-vacinas th { background:#0a532b; color:white; padding:9px 7px; font-weight:700; }
+.pub-vacinas td { padding:8px 7px; border-bottom:1px solid #dfcda9; color:#26392c; }
+.pub-vacinas th:first-child { border-top-left-radius:5px; }
+.pub-vacinas th:last-child { border-top-right-radius:5px; }
+.pub-sem-registros { text-align:center; font-style:italic; }
+.pub-nota-vac { text-align:center; font-size:11px; font-style:italic; padding:8px 10px 12px; color:#655b47; }
+.pub-saude { padding:11px 14px; }
+.pub-saude-linha { display:grid; grid-template-columns:minmax(95px,34%) minmax(0,1fr); gap:8px; padding:8px 3px; border-bottom:1px solid #e2ceaa; font-size:13px; overflow-wrap:anywhere; }
+.pub-saude-linha:last-child { border:0; }
+.pub-saude-linha strong { color:#0c4c2a; }
+.pub-vazio { color:#655b47; font-size:13px; }
+.pub-acoes { display:flex; gap:10px; padding:12px; }
+.pub-acoes a { flex:1; min-width:0; padding:13px 9px; border-radius:10px; color:white; font-size:13px; font-weight:800; text-align:center; text-decoration:none; }
+.pub-ligar { background:#0b4a28; }
+.pub-whatsapp { background:#18c963; }
+.pub-secundario { border:1px solid #c99b3c; margin:0 12px 12px; border-radius:10px; padding:12px; display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; font-size:12px; }
+.pub-secundario strong { color:#1d5636; }
+.pub-secundario a { color:#0c512b; text-decoration:underline; font-weight:800; }
+.pub-rodape { text-align:center; padding:12px 0 2px; border-top:1px solid #c99b3c; margin-top:18px; display:flex; flex-direction:column; align-items:center; }
+.pub-rodape strong { color:#0f4e2a; font:700 34px Georgia,serif; }
+.pub-rodape span { font:italic 13px Georgia,serif; }
+@media(max-width:480px) {
+ .pub-background { padding:6px; }
+ .pub-documento { padding:19px 12px 22px; border-width:3px; }
+ .pub-identidade { grid-template-columns:38% minmax(0,1fr); gap:9px; padding:11px 9px 4px; }
+ .pub-grade { grid-template-columns:repeat(2,minmax(0,1fr)); padding:8px 9px 11px; gap:6px; }
+ .pub-dado { padding:7px; }
+ .pub-nome strong { font-size:24px; }
+ .pub-registro strong { font-size:12px; }
+ .pub-acoes { flex-direction:column; }
+ .pub-saude-linha { grid-template-columns:minmax(90px,40%) minmax(0,1fr); }
+}
 </style>
 </head>
 <body>
@@ -1477,93 +1537,114 @@ const PublicPetView = ({ publicId }) => {
   const [tutor, setTutor] = useState(null);
   const [carregando, setCarregando] = useState(true);
   useEffect(() => {
+    let ativo = true;
     (async () => {
       const { data: petData } = await sb.from('pets').select('*').eq('public_id', publicId).maybeSingle();
+      if (!ativo) return;
       if (petData) {
         setPet(petData);
         const { data: tutorData } = await sb.from('tutores').select('*').eq('id', petData.tutor_id).maybeSingle();
-        setTutor(tutorData);
+        if (ativo) setTutor(tutorData);
       }
-      setCarregando(false);
+      if (ativo) setCarregando(false);
     })();
+    return () => { ativo = false; };
   }, [publicId]);
-  
-  if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
-  
-  if (!pet) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
-        <div className="w-full max-w-sm card text-center" style={{border:'4px solid #eab308'}}>
-           <div className="text-4xl mb-3">🏷️</div>
-           <h1 className="font-bold text-lg mb-2" style={{color:'#1a3c2e'}}>QR Code não ativado</h1>
-           <p className="text-sm text-gray-600 mb-5">Este código (<strong>{publicId}</strong>) ainda não foi vinculado a nenhum pet.</p>
-           <a href={`/?codigo=${publicId}`} className="btn-primary block w-full py-3 rounded-xl font-semibold text-sm">Ativar e Cadastrar Pet</a>
-        </div>
-      </div>
-    );
-  }
 
-  if (!tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center text-sm">Tutor não encontrado.</div></div>;
-  const vacinas = pet.vaccinations || [];
-  const saude = pet.saude || {};
-  const emerg = pet.emergencia || {};
-  const vacinasStatus = vacinas.map(v => calcularStatusVacina(v.data));
-  const temVencida = vacinasStatus.some(s => s.label === 'Vencida');
-  const temAtencao = vacinasStatus.some(s => s.label === 'Atenção');
-  const vacinasEmDia = vacinas.length > 0 && !temVencida && !temAtencao;
-  const temInfoSaude = saude.doencas || saude.alergias || saude.medicamentos || saude.tipoSanguineo || saude.comportamento || saude.observacoes;
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
-      <div className="w-full max-w-sm">
-        <div className="card" style={{border:'4px solid #1a3c2e'}}>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-3" style={{backgroundColor:'#eab308'}}>🐾</div>
-            {pet.is_lost && (
-              <div className="text-white text-center p-4 rounded-xl mb-4" style={{backgroundColor:'#dc2626'}}>
-                <div className="font-extrabold text-lg tracking-wider mb-2">🐾 ESTOU PERDIDO</div>
-                <div className="text-sm font-semibold leading-snug">Se você me encontrou,<br/>avise meus pais</div>
-                <div className="text-[11px] mt-2 leading-snug" style={{color:'#fee2e2'}}>Tenho problemas de saúde e preciso voltar pra casa</div>
-              </div>
-            )}
-            <div className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-2" style={{border:'4px solid #eab308'}}>
-              {pet.foto ? <img src={pet.foto} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="flex items-center justify-center" style={{width:'100%',height:'100%',fontSize:'32px',color:'#d1d5db'}}>🐾</div>}
-            </div>
-            <div className="font-bold text-base">{pet.nome}</div>
-            <div className="text-xs text-gray-500">{pet.raca||'—'} • {pet.porte||'—'} {pet.sexo?'• '+pet.sexo:''}</div>
-            {pet.cor_pelagem && <div className="text-xs text-gray-500 mt-0.5">Cor: {pet.cor_pelagem}</div>}
-          </div>
-          {vacinas.length > 0 && (
-            <div className="mt-3 p-2 rounded-lg text-center text-xs font-semibold" style={{backgroundColor: vacinasEmDia ? '#dcfce7' : '#fee2e2', color: vacinasEmDia ? '#15803d' : '#b91c1c'}}>
-              {vacinasEmDia ? '💉 Vacinas em dia' : (temVencida ? '⚠ Vacinas: tem vacina vencida' : '⚠ Vacinas: atenção')}
-            </div>
-          )}
-          {temInfoSaude && (
-            <div className="mt-3 rounded-lg p-3" style={{backgroundColor:'#faf6ec', border:'1px solid #e8dfc8'}}>
-              <div className="text-[10px] tracking-[0.2em] font-bold mb-2" style={{color:'#8b7a4d'}}>SAÚDE DO PET</div>
-              <div className="space-y-1 text-xs">
-                {saude.comportamento && <div><span className="text-gray-500">Comportamento:</span> <strong>{saude.comportamento}</strong></div>}
-                {saude.doencas && <div><span className="text-gray-500">Doenças/Condições:</span> {saude.doencas}</div>}
-                {saude.alergias && <div><span className="text-gray-500">Alergias:</span> {saude.alergias}</div>}
-                {saude.medicamentos && <div><span className="text-gray-500">Medicamentos:</span> {saude.medicamentos}</div>}
-                {saude.tipoSanguineo && <div><span className="text-gray-500">Tipo sanguíneo:</span> {saude.tipoSanguineo}</div>}
-                {saude.observacoes && <div><span className="text-gray-500">Obs:</span> {saude.observacoes}</div>}
-              </div>
-            </div>
-          )}
-          <div className="space-y-2 mt-4">
-            <a href={`tel:${tutor.telefone}`} className="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm" style={{display:'flex'}}>📞 Ligar para o tutor</a>
-            <a href={`https://wa.me/55${(tutor.whatsapp||'').replace(/\D/g,'')}`} target="_blank" className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-white text-sm" style={{backgroundColor:'#25D366', display:'flex'}}>💬 Chamar no WhatsApp</a>
-          </div>
-          {(emerg.nome || emerg.telefone) && (
-            <div className="mt-3 pt-3 border-t text-xs text-gray-600 text-center leading-relaxed">
-              Não conseguiu falar com o tutor?<br/>
-              Ligue para <strong>{emerg.nome}</strong>{emerg.relacao ? ` (${emerg.relacao})` : ''}: <strong>{emerg.telefone}</strong>
-            </div>
-          )}
-        </div>
+  if (carregando) return <div className="min-h-screen flex items-center justify-center p-4"><div className="spinner"></div></div>;
+  if (!pet) return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{background:'#faf6ec'}}>
+      <div className="card text-center" style={{border:'3px solid #bd9232'}}>
+        <div className="text-4xl mb-3">🏷️</div>
+        <h1 className="font-bold text-lg mb-2" style={{color:'#1a3c2e'}}>QR Code não ativado</h1>
+        <p className="text-sm text-gray-600 mb-4">Este código ainda não foi vinculado a um pet.</p>
+        <a href={'/?codigo='+encodeURIComponent(publicId)} className="btn-primary block w-full py-3 rounded-xl font-semibold text-sm">Ativar e cadastrar pet</a>
       </div>
     </div>
   );
+  if (!tutor) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card text-center">Tutor não encontrado.</div></div>;
+
+  const vacinas = Array.isArray(pet.vaccinations) ? pet.vaccinations : [];
+  const saude = pet.saude || {};
+  const emerg = pet.emergencia || {};
+  const registro = pet.registro_id || ('CL-'+String(pet.id).slice(-6));
+  const fmtData = (v) => {
+    if (!v) return 'Não informado';
+    const raw = String(v);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw.split('-').reverse().join('/');
+    return raw;
+  };
+  const dados = [
+    ['Espécie',pet.especie], ['Raça',pet.raca], ['Sexo',pet.sexo],
+    ['Porte',pet.porte], ['Peso',pet.peso], ['Cor / Pelagem',pet.cor_pelagem],
+    ['Microchip',pet.microchip], ['Nascimento',pet.data_nascimento ? fmtData(pet.data_nascimento) : pet.idade],
+    ['Tutor',tutor.nome]
+  ];
+  const saudeCampos = [
+    ['Comportamento',saude.comportamento], ['Doenças / Condições',saude.doencas],
+    ['Alergias',saude.alergias], ['Medicamentos',saude.medicamentos],
+    ['Tipo sanguíneo',saude.tipoSanguineo], ['Observações',saude.observacoes]
+  ];
+  const telefone = String(tutor.telefone || tutor.whatsapp || '').replace(/\D/g,'');
+  const whatsapp = String(tutor.whatsapp || tutor.telefone || '').replace(/\D/g,'');
+  const numeroWhatsapp = whatsapp.startsWith('55') ? whatsapp : '55'+whatsapp;
+  const temSaude = saudeCampos.some(([k,v])=>Boolean(v));
+  return <main className="pub-background">
+    <article className="pub-documento">
+      <header className="pub-cabecalho">
+        <MarcaDocumento/>
+        <p className="pub-subtitulo">Registro digital do seu melhor amigo.</p>
+      </header>
+      {pet.is_lost && <div className="pub-alerta" role="alert">
+        <strong>⚠ ESTE PET ESTÁ PERDIDO</strong>
+        <span>Se você me encontrou, entre em contato com meu tutor imediatamente.</span>
+      </div>}
+      <section className="pub-secao">
+        <h2 className="pub-faixa">🐾 DADOS DO PET (RG PET)</h2>
+        <div className="pub-identidade">
+          <div className="pub-foto">{pet.foto ? <img src={pet.foto} alt={'Foto de '+pet.nome}/> : <span>🐾</span>}</div>
+          <div className="pub-principal">
+            <div className="pub-nome"><small>NOME DO PET</small><strong>{pet.nome}</strong></div>
+            <div className="pub-registro"><small>Nº DE REGISTRO</small><strong>{registro}</strong></div>
+            {petFoiAdotado(pet) && <div className="pub-adotado"><SeloAdocao pet={pet}/></div>}
+          </div>
+        </div>
+        <div className="pub-grade">{dados.map(([label,valor])=><div className="pub-dado" key={label}>
+          <span>{label}</span><strong>{valor || 'Não informado'}</strong>
+        </div>)}</div>
+      </section>
+      <section className="pub-secao">
+        <h2 className="pub-faixa">💉 VACINAÇÃO E CUIDADOS</h2>
+        <div className="pub-tabela-scroll">
+          <table className="pub-vacinas"><thead><tr><th>Vacina</th><th>Aplicação</th><th>Reforço</th><th>Veterinário</th></tr></thead>
+          <tbody>{vacinas.length ? vacinas.map((v,i)=><tr key={v.id||i}>
+            <td>{v.nome || 'Não informado'}</td>
+            <td>{fmtData(v.data)}</td>
+            <td>{fmtData(v.reforco || v.proxima_dose)}</td>
+            <td>{v.veterinario || 'Não informado'}</td>
+          </tr>) : <tr><td colSpan="4" className="pub-sem-registros">Nenhuma vacina cadastrada.</td></tr>}</tbody></table>
+        </div>
+        <p className="pub-nota-vac">Histórico informado pelo tutor. Confira as datas de reforço com o veterinário.</p>
+      </section>
+      <section className="pub-secao">
+        <h2 className="pub-faixa">♡ INFORMAÇÕES DE SAÚDE</h2>
+        <div className="pub-saude">{temSaude ? saudeCampos.filter(([k,v])=>Boolean(v)).map(([label,valor])=><div className="pub-saude-linha" key={label}><strong>{label}:</strong><span>{valor}</span></div>) : <p className="pub-vazio">Nenhuma informação de saúde cadastrada.</p>}</div>
+      </section>
+      <section className="pub-secao">
+        <h2 className="pub-faixa">☎ CONTATO DE EMERGÊNCIA</h2>
+        <div className="pub-acoes">
+          {telefone && <a href={'tel:+'+telefone} className="pub-ligar">☎ Ligar para o tutor</a>}
+          {whatsapp && <a href={'https://wa.me/'+numeroWhatsapp} target="_blank" rel="noopener noreferrer" className="pub-whatsapp">💬 Chamar no WhatsApp</a>}
+        </div>
+        {(emerg.nome || emerg.telefone) && <div className="pub-secundario">
+          <strong>CONTATO SECUNDÁRIO</strong>
+          <span>{emerg.nome || 'Contato de emergência'}{emerg.relacao ? ' ('+emerg.relacao+')' : ''}</span>
+          {emerg.telefone && <a href={'tel:'+String(emerg.telefone).replace(/[^\d+]/g,'')}>{emerg.telefone}</a>}
+        </div>}
+      </section>
+      <footer className="pub-rodape"><strong>PetfiQ</strong><span>Registro digital do seu melhor amigo.</span></footer>
+    </article>
+  </main>;
 };
 
 const QRCodeFisicoModal = ({ pet, tutor, onClose, mostrarEndereco = true }) => {
