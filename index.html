@@ -278,6 +278,52 @@
 .pf-adocao-seal .pf-selo-final { width:78px; height:78px; flex:0 0 78px; margin:0 auto; }
 @media(max-width:480px) { .pf-selo-final,.pf-adocao-seal .pf-selo-final { width:65px; height:65px; flex-basis:65px; } }
 @media print { .pf-selo-final,.pf-selo-final img { print-color-adjust:exact; -webkit-print-color-adjust:exact; break-inside:avoid; } }
+
+/* Ajuste aprovado: selo maior, mesma altura visual do QR e separador dourado. */
+.pf-identidade-extras {
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+  gap:0;
+  width:100%;
+  margin:10px auto 0;
+}
+.pf-identidade-extras > .pf-qr-documento {
+  flex:0 1 112px;
+  width:112px;
+  min-width:0;
+  margin:0;
+}
+.pf-identidade-extras:has(> .pf-qr-documento):has(> .pf-selo-final)::before {
+  content:'';
+  order:1;
+  align-self:stretch;
+  width:2px;
+  min-width:2px;
+  max-height:120px;
+  margin:0 10px;
+  background:#b58c30;
+}
+.pf-identidade-extras > .pf-selo-final {
+  order:2;
+  width:112px;
+  height:112px;
+  flex:0 1 112px;
+  margin:0 auto;
+  aspect-ratio:1;
+}
+.pf-identidade-extras > .pf-qr-documento { order:0; }
+.pf-identidade-extras > .pf-selo-final img { width:100%; height:100%; object-fit:contain; image-rendering:auto; }
+.pf-identidade-extras:not(:has(.pf-qr-documento)) > .pf-selo-final { margin-left:auto; margin-right:auto; }
+@media(max-width:480px) {
+  .pf-identidade-extras > .pf-qr-documento { width:88px; flex-basis:88px; }
+  .pf-identidade-extras > .pf-selo-final { width:88px; height:88px; flex-basis:88px; }
+  .pf-identidade-extras:has(> .pf-qr-documento):has(> .pf-selo-final)::before {
+    max-height:100px;
+    margin:0 7px;
+  }
+}
 </style>
 </head>
 <body>
