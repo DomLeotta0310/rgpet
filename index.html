@@ -373,6 +373,15 @@
 .pub-rodape { text-align:center; padding:12px 0 2px; border-top:1px solid #c99b3c; margin-top:18px; display:flex; flex-direction:column; align-items:center; }
 .pub-rodape strong { color:#0f4e2a; font:700 34px Georgia,serif; }
 .pub-rodape span { font:italic 13px Georgia,serif; }
+
+.pub-rodape-apoio { width:100%; max-width:640px; border-top:1px solid #c99b3c; margin-top:18px; padding:16px 12px 12px; color:#17432e; }
+.pub-rodape-apoio h2 { margin:0 0 10px; font:700 clamp(14px,3.5vw,18px)/1.3 Georgia,serif; }
+.pub-rodape-apoio p { font-size:13px; line-height:1.45; margin:6px 0; }
+.pub-rodape-apoio .pub-apoio-chamada { font-weight:650; }
+.pub-rodape-apoio .pub-apoio-numero { font-size:15px; font-weight:800; margin:10px 0; }
+.pub-rodape-apoio .pub-apoio-botao { display:block; width:100%; max-width:370px; margin:12px auto 2px; padding:13px 12px; border-radius:11px; color:white; background:#0b4a28; font-size:14px; font-weight:800; text-align:center; text-decoration:none; }
+.pub-rodape-apoio .pub-apoio-botao:focus-visible { outline:3px solid #c99b3c; outline-offset:3px; }
+
 @media(max-width:480px) {
  .pub-background { padding:6px; }
  .pub-documento { padding:19px 12px 22px; border-width:3px; }
@@ -1826,7 +1835,17 @@ const PublicPetView = ({ publicId }) => {
           {emerg.telefone && <a href={'tel:'+String(emerg.telefone).replace(/[^\d+]/g,'')}>{emerg.telefone}</a>}
         </div>}
       </section>
-      <footer className="pub-rodape"><strong>PetfiQ</strong><span>Registro digital do seu melhor amigo.</span></footer>
+      <footer className="pub-rodape">
+        <strong>PetfiQ</strong>
+        <span>Registro digital do seu melhor amigo.</span>
+        <div className="pub-rodape-apoio">
+          <h2>🐾 CÃO LEOTTA — APOIO E ATENDIMENTO</h2>
+          <p className="pub-apoio-chamada">Encontrou este pet e não conseguiu falar com o tutor? Ou gostou do PetfiQ e quer adquirir o seu?</p>
+          <p>Fale com nossa equipe pelo WhatsApp!</p>
+          <p className="pub-apoio-numero">📱 +55 11 94383-3520</p>
+          <a className="pub-apoio-botao" href={'https://wa.me/5511943833520?text='+encodeURIComponent('Olá! Vi a identificação digital PetfiQ e gostaria de falar com a equipe do Cão Leotta.')} target="_blank" rel="noopener noreferrer">💬 Falar com o Cão Leotta</a>
+        </div>
+      </footer>
     </article>
   </main>;
 };
