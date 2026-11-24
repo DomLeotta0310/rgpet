@@ -2017,7 +2017,7 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose, mostrarEndereco = true }) => {
 const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [aba, setAba] = useState('pedidos');
   const [filtroPedidos, setFiltroPedidos] = useState('todos');
-  const [filtroCidadePerdidosADM, setFiltroCidadePerdidosADM] = useState('');
+  const [filtroPetsADM, setFiltroPetsADM] = useState('todos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
   const [precos, setPrecos] = useState({ c1: settings.price_combo1, c2: settings.price_combo2 });
   const [tutores, setTutores] = useState([]);
@@ -2180,8 +2180,8 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     <div className="mobile-container p-4">
       <h1 className="text-xl font-bold mb-4">Painel Admin</h1>
       <div className="flex gap-1 mb-3 border-b overflow-x-auto">
-        {['pedidos','precos','cupons','pets','perdidos','qrfisico','usuarios'].map(t => (
-          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'perdidos' ? '⚠ Perdidos' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
+        {['pedidos','precos','cupons','pets','qrfisico','usuarios'].map(t => (
+          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
         ))}
       </div>
 
@@ -2262,52 +2262,19 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
         </>
       )}
 
-      {aba === 'perdidos' && (
-        <div className="space-y-3">
-          <div className="card space-y-3">
-            <h2 className="font-bold text-base" style={{color:'#1a3c2e'}}>⚠ Pets desaparecidos</h2>
-            <p className="text-xs text-gray-600">Somente animais atualmente marcados como perdidos. Filtre pela cidade do desaparecimento, não pelo endereço do tutor.</p>
-            <div>
-              <label className="label" htmlFor="adm-cidade-perdidos">Cidade do desaparecimento</label>
-              <select id="adm-cidade-perdidos" className="input-field" value={filtroCidadePerdidosADM} onChange={e=>setFiltroCidadePerdidosADM(e.target.value)}>
-                <option value="">Todas as cidades</option>
-                {[...new Set(pets.filter(p=>p.is_lost && p.cidade_desaparecimento).map(p=>p.cidade_desaparecimento.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR')).map(c=><option key={c} value={c}>{c}</option>)}
-                <option value="__sem_cidade__">Região não informada</option>
-              </select>
-            </div>
-            <div className="text-sm font-semibold" style={{color:'#1a3c2e'}}>
-              {pets.filter(p=>p.is_lost && (filtroCidadePerdidosADM==='' || (filtroCidadePerdidosADM==='__sem_cidade__' ? !p.cidade_desaparecimento?.trim() : (p.cidade_desaparecimento||'').trim().toLocaleLowerCase('pt-BR')===filtroCidadePerdidosADM.trim().toLocaleLowerCase('pt-BR')))).length} pet(s) encontrado(s)
-            </div>
-          </div>
-          {pets.filter(p=>p.is_lost && (filtroCidadePerdidosADM==='' || (filtroCidadePerdidosADM==='__sem_cidade__' ? !p.cidade_desaparecimento?.trim() : (p.cidade_desaparecimento||'').trim().toLocaleLowerCase('pt-BR')===filtroCidadePerdidosADM.trim().toLocaleLowerCase('pt-BR')))).map(pet=>{
-            const t = tutores.find(x=>String(x.id)===String(pet.tutor_id));
-            return <div key={pet.id} className="card space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-16 flex-shrink-0 overflow-hidden rounded-xl" style={{background:'#f4ead8'}}>
-                  {pet.foto ? <img src={pet.foto} alt={'Foto de '+pet.nome} style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <div className="w-full h-full flex items-center justify-center text-2xl">🐾</div>}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold text-sm">{pet.nome}</div>
-                  <div className="text-xs text-gray-600">{pet.registro_id||'Sem número de registro'}</div>
-                  <div className="text-xs text-gray-600">Tutor: {t?.nome||'Não informado'}</div>
-                  <div className="text-xs" style={{color:'#9f2222'}}>📍 {[pet.bairro_desaparecimento,pet.cidade_desaparecimento,pet.uf_desaparecimento].filter(Boolean).join(' · ')||'Região não informada'}</div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {pet.public_id && <a href={'/?pet='+encodeURIComponent(pet.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 rounded-lg text-center text-xs font-semibold" style={{background:'#1a3c2e',color:'white'}}>Ver QR público</a>}
-                <button type="button" className="flex-1 py-2 rounded-lg text-xs font-semibold" style={{border:'1px solid #c7a458',color:'#1a3c2e'}} onClick={()=>setAba('pets')}>Gerenciar em Pets</button>
-              </div>
-            </div>;
-          })}
-          {pets.filter(p=>p.is_lost && (filtroCidadePerdidosADM==='' || (filtroCidadePerdidosADM==='__sem_cidade__' ? !p.cidade_desaparecimento?.trim() : (p.cidade_desaparecimento||'').trim().toLocaleLowerCase('pt-BR')===filtroCidadePerdidosADM.trim().toLocaleLowerCase('pt-BR')))).length===0 &&
-            <div className="card text-sm text-gray-600 text-center">Nenhum pet perdido encontrado para este filtro.</div>}
-        </div>
-      )}
-
       {aba === 'pets' && (
         <div className="space-y-2">
-          {pets.length === 0 && <div className="card text-xs text-gray-500 text-center">Nenhum pet.</div>}
-          {pets.map(pet => {
+          <div className="card">
+            <div className="font-bold text-sm mb-2">Filtrar pets</div>
+            <div className="flex gap-2 flex-wrap">
+              {[['todos','Todos'],['perdidos','⚠ Perdidos'],['encontrados','✓ Encontrados']].map(([valor,rotulo])=>(
+                <button key={valor} type="button" onClick={()=>setFiltroPetsADM(valor)} className="px-4 py-2 rounded-xl text-xs font-semibold" style={filtroPetsADM===valor?{backgroundColor:'#1a3c2e',color:'white'}:{backgroundColor:'#fffefb',color:'#1a3c2e',border:'1px solid #e8dfc8'}}>{rotulo}</button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">{pets.filter(p=>filtroPetsADM==='todos'||(filtroPetsADM==='perdidos'?p.is_lost===true:p.is_lost!==true)).length} pet(s) neste filtro</p>
+          </div>
+          {pets.filter(p=>filtroPetsADM==='todos'||(filtroPetsADM==='perdidos'?p.is_lost===true:p.is_lost!==true)).length===0 && <div className="card text-xs text-gray-500 text-center">Nenhum pet neste filtro.</div>}
+          {pets.filter(p=>filtroPetsADM==='todos'||(filtroPetsADM==='perdidos'?p.is_lost===true:p.is_lost!==true)).map(pet => {
             const t = tutores.find(x => x.id === pet.tutor_id);
             return (
               <div key={pet.id} className="card py-3">
