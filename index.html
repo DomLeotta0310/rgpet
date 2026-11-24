@@ -765,6 +765,71 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
   );
 };
 
+
+const PainelPetsPerdidos = ({ pets, user, onAbrirMeuPet }) => {
+  const [filtro, setFiltro] = useState('regiao');
+  const [busca, setBusca] = useState('');
+  const [aba, setAba] = useState('perdidos');
+  const norm = v => String(v || '').trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const compararCidade = p => !!user.cidade && norm(p.cidade_desaparecimento) === norm(user.cidade) && norm(p.uf_desaparecimento) === norm(user.uf);
+  const minhaRegiao = p => compararCidade(p) && !!p.bairro_desaparecimento && (
+    norm(p.bairro_desaparecimento) === norm(user.bairro || '') ||
+    (!!user.endereco && norm(user.endereco).includes(norm(p.bairro_desaparecimento)))
+  );
+  const perdidos = pets.filter(p => p.is_lost === true && p.public_id);
+  const encontrados = pets.filter(p => p.is_lost !== true && !!p.reencontrado_em && p.public_id);
+  const lista = (aba === 'perdidos' ? perdidos : encontrados)
+    .filter(p => filtro === 'brasil' || (aba === 'reencontrados' ? compararCidade(p) : minhaRegiao(p) || compararCidade(p)))
+    .filter(p => !busca || [p.nome,p.raca,p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].some(v=>norm(v).includes(norm(busca))))
+    .sort((a,b)=>new Date(b[aba==='perdidos'?'perdido_em':'reencontrado_em']||0)-new Date(a[aba==='perdidos'?'perdido_em':'reencontrado_em']||0));
+  const compartilhar = async p => {
+    const url = 'https://rgpet.vercel.app/?pet='+encodeURIComponent(p.public_id);
+    const titulo = p.is_lost ? 'Pet desaparecido: '+p.nome : p.nome+' voltou ao lar!';
+    try {
+      if (navigator.share) await navigator.share({title:titulo,text:titulo,url});
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(titulo+' '+url); alert('Link copiado!'); }
+      else window.prompt('Copie o link para compartilhar:',url);
+    } catch(err) { if (err.name !== 'AbortError') window.prompt('Copie o link:',url); }
+  };
+  return <main className="mobile-container p-4">
+    <h1 className="text-xl font-bold mb-1" style={{color:'#1a3c2e'}}>🐾 Pets Perdidos e Voltou ao Lar</h1>
+    <p className="text-xs text-gray-600 mb-4">Ajude a divulgar casos e celebre os reencontros. A localização exibida é apenas a região informada pelo tutor.</p>
+    <div className="flex gap-2 mb-3">
+      <button className="flex-1 rounded-xl py-3 text-sm font-bold" style={aba==='perdidos'?{background:'#a32121',color:'white'}:{background:'#fffdf5',color:'#1a3c2e',border:'1px solid #d3c29a'}} onClick={()=>setAba('perdidos')}>⚠ Perdidos ({perdidos.length})</button>
+      <button className="flex-1 rounded-xl py-3 text-sm font-bold" style={aba==='reencontrados'?{background:'#167343',color:'white'}:{background:'#fffdf5',color:'#1a3c2e',border:'1px solid #d3c29a'}} onClick={()=>setAba('reencontrados')}>🏠 Voltou ao Lar ({encontrados.length})</button>
+    </div>
+    <div className="card space-y-3 mb-3">
+      <div className="flex gap-2">
+        <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='regiao'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('regiao')}>Minha cidade</button>
+        <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='brasil'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('brasil')}>Todo o Brasil</button>
+      </div>
+      <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça, bairro ou cidade"/>
+      {filtro==='regiao' && !user.cidade && <p className="text-xs text-amber-700">Preencha sua cidade em Meus dados para filtrar casos próximos.</p>}
+      {filtro==='regiao' && <p className="text-xs text-gray-500">Exibindo a cidade cadastrada, quando disponível. Alertas automáticos por bairro serão uma etapa posterior.</p>}
+    </div>
+    <div className="space-y-3">
+      {!lista.length && <div className="card text-center text-sm text-gray-600">Nenhum caso encontrado para este filtro. Experimente “Todo o Brasil”.</div>}
+      {lista.map(p=><article key={p.id} className="card" style={{border:'1px solid #d4bf84'}}>
+        <div className="flex gap-3">
+          <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden" style={{background:'#f0e7d0'}}>
+            {p.foto ? <img src={p.foto} alt={'Foto de '+p.nome} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div className="w-full h-full flex items-center justify-center text-4xl">🐾</div>}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-bold text-lg" style={{color:'#1a3c2e'}}>{p.nome}</h2>
+            <div className="text-xs text-gray-600">{p.especie || 'Pet'} · {p.raca || 'Raça não informada'}</div>
+            <div className="text-xs mt-1">📍 {[p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].filter(Boolean).join(' · ') || 'Região não informada'}</div>
+            <div className="mt-2 text-xs font-semibold" style={{color:p.is_lost?'#a32121':'#167343'}}>{p.is_lost?'⚠ DESAPARECIDO':'🏠 VOLTOU AO LAR'}</div>
+          </div>
+        </div>
+        <div className="flex gap-2 mt-3">
+          <a href={'/?pet='+encodeURIComponent(p.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 text-center rounded-lg text-sm font-semibold" style={{background:'#1a3c2e',color:'white'}}>Ver identificação</a>
+          <button className="flex-1 py-2 rounded-lg text-sm font-semibold" style={{border:'1px solid #b99945',color:'#1a3c2e'}} onClick={()=>compartilhar(p)}>Compartilhar</button>
+        </div>
+      </article>)}
+    </div>
+  </main>;
+};
+
 const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
   <nav className="sticky top-0 z-40 border-b border-gray-200" style={{backgroundColor:'#faf6ec'}}>
     <div className="mobile-container px-4 py-3 flex justify-between items-center">
@@ -775,6 +840,7 @@ const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
       {user && (
         <div className="flex items-center gap-2 text-xs">
           <button onClick={() => onNavigate('dashboard')} className="px-3 py-1.5 rounded-full" style={currentView==='dashboard'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>Pets</button>
+          <button onClick={() => onNavigate('perdidos')} className="px-3 py-1.5 rounded-full" style={currentView==='perdidos'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>🐾 Perdidos</button>
           <button onClick={() => onNavigate('profile')} className="px-3 py-1.5 rounded-full" style={currentView==='profile'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>Meus dados</button>
           {isAdmin && <button onClick={() => onNavigate('admin')} className="px-3 py-1.5 rounded-full" style={{backgroundColor:'#dc2626', color:'white'}}>Admin</button>}
           <button onClick={onLogout} className="px-3 py-1.5 rounded-full" style={{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>Sair</button>
@@ -1474,7 +1540,25 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
       setProcessando(false);
     }
   };
-  const marcarPerdido = async () => { if (pet.is_lost) return; const {error} = await sb.from('pets').update({ is_lost: true, perdido_em: new Date().toISOString(), reencontrado_em: null }).eq('id', pet.id); if(error) {alert('Não foi possível marcar como perdido: '+error.message);return;} onRefresh(); };
+  const marcarPerdido = async () => {
+    if (pet.is_lost) return;
+    const bairro = window.prompt('Em qual bairro o pet desapareceu? Informe apenas o bairro, sem o endereço da casa.', pet.bairro_desaparecimento || '');
+    if (bairro === null) return;
+    const cidade = window.prompt('Cidade onde desapareceu:', user.cidade || '') ;
+    if (cidade === null) return;
+    const uf = window.prompt('Estado (sigla, ex.: SP):', user.uf || '');
+    if (uf === null) return;
+    if (!bairro.trim() || !cidade.trim() || !/^[A-Za-z]{2}$/.test(uf.trim())) {
+      alert('Informe bairro, cidade e sigla do estado para divulgar o caso na região correta.');
+      return;
+    }
+    const {error} = await sb.from('pets').update({
+      is_lost:true, perdido_em:new Date().toISOString(), reencontrado_em:null,
+      bairro_desaparecimento:bairro.trim(), cidade_desaparecimento:cidade.trim(), uf_desaparecimento:uf.trim().toUpperCase()
+    }).eq('id',pet.id);
+    if(error) { alert('Não foi possível marcar como perdido: '+error.message); return; }
+    onRefresh();
+  };
   const marcarEmCasa = async () => { if (!pet.is_lost) return; const {error} = await sb.from('pets').update({ is_lost: false, reencontrado_em: new Date().toISOString() }).eq('id', pet.id); if(error) {alert('Não foi possível confirmar o reencontro: '+error.message);return;} onRefresh(); };
   return (
     <div className="mobile-container p-4">
@@ -2397,6 +2481,7 @@ const App = () => {
       {view === 'dashboard' && petSelecionado && !petEditando && (
         <PetDetail user={user} pet={pets.find(p=>p.id===petSelecionado.id)||petSelecionado} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} onBack={()=>{setPetSelecionado(null);setTabInicial(null);}} onEdit={()=>setPetEditando(petSelecionado)} initialTab={tabInicial} />
       )}
+      {view === 'perdidos' && <PainelPetsPerdidos pets={pets} user={user} />}
       {view === 'profile' && <TutorProfile user={user} onUpdate={(u)=>setUser({...user, ...u})} onGerarPrevia={()=>setView('preview')} />}
       {view === 'preview' && <PreviewScreen onBack={()=>setView('profile')} />}
       {view === 'admin' && isAdmin && <AdminPanel user={user} pets={pets} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} />}
