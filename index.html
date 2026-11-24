@@ -1352,6 +1352,44 @@ const PetForm = ({ user, initialPet, onSaved, onCancel, codigoInicial }) => {
   const [vacinas, setVacinas] = useState(initialPet?.vaccinations || []);
   const [novaVacina, setNovaVacina] = useState({ nome:'', data:'' });
   const [salvando, setSalvando] = useState(false);
+  const [statusPerdido, setStatusPerdido] = useState(initialPet?.is_lost === true);
+  const [alterandoStatus, setAlterandoStatus] = useState(false);
+  const [localDesaparecimento, setLocalDesaparecimento] = useState({
+    bairro:initialPet?.bairro_desaparecimento||'',
+    cidade:initialPet?.cidade_desaparecimento||'',
+    uf:initialPet?.uf_desaparecimento||''
+  });
+
+  const mudarStatusNoCadastro = async (perdido) => {
+    if (salvando || alterandoStatus || statusPerdido === perdido) return;
+    let local = localDesaparecimento;
+    if (perdido) {
+      const bairro = window.prompt('Bairro onde o pet desapareceu (sem endereço da residência):', local.bairro || user.bairro || '');
+      if (bairro === null) return;
+      const cidade = window.prompt('Cidade do desaparecimento:', local.cidade || user.cidade || '');
+      if (cidade === null) return;
+      const uf = window.prompt('Sigla do estado (ex.: SP):', local.uf || user.uf || '');
+      if (uf === null) return;
+      if (!bairro.trim() || !cidade.trim() || !/^[a-zA-Z]{2}$/.test(uf.trim())) {
+        alert('Preencha bairro, cidade e sigla do estado para localizar o caso na região.');
+        return;
+      }
+      local = {bairro:bairro.trim(),cidade:cidade.trim(),uf:uf.trim().toUpperCase()};
+    }
+    if (emEdicao) {
+      const agora = new Date().toISOString();
+      const alteracao = perdido
+        ? {is_lost:true,perdido_em:agora,reencontrado_em:null,
+            bairro_desaparecimento:local.bairro,cidade_desaparecimento:local.cidade,uf_desaparecimento:local.uf}
+        : {is_lost:false,reencontrado_em:agora};
+      setAlterandoStatus(true);
+      const {error} = await sb.from('pets').update(alteracao).eq('id',initialPet.id).eq('tutor_id',user.id);
+      setAlterandoStatus(false);
+      if (error) {alert('Não foi possível atualizar o status: '+error.message);return;}
+    }
+    setLocalDesaparecimento(local);
+    setStatusPerdido(perdido);
+  };
 
   const salvar = async () => {
     if (!form.nome) { alert('Informe o nome do pet'); return; }
@@ -1375,7 +1413,7 @@ const PetForm = ({ user, initialPet, onSaved, onCancel, codigoInicial }) => {
       onSaved(data);
     } else {
       const registroId = 'CL-' + String(Date.now()).slice(-6) + '-' + Math.floor(Math.random()*900+100);
-      const pet = { id: Date.now(), tutor_id: user.id, public_id: finalPublicId, registro_id: registroId, data_registro: new Date().toISOString(), nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: false };
+      const pet = { id: Date.now(), tutor_id: user.id, public_id: finalPublicId, registro_id: registroId, data_registro: new Date().toISOString(), nome: form.nome, especie: form.especie, raca: form.raca, porte: form.porte, sexo: form.sexo, castrado: form.castrado, peso: form.peso, cor_pelagem: form.cor_pelagem, idade: form.idade, data_nascimento: form.data_nascimento, local_nascimento: form.local_nascimento, pai: form.pai, mae: form.mae, foto: form.foto, tem_microchip: form.tem_microchip, microchip: form.microchip, saude: form.saude, emergencia: form.emergencia, vaccinations: vacinas, is_lost: statusPerdido, ...(statusPerdido ? {perdido_em:new Date().toISOString(), bairro_desaparecimento:localDesaparecimento.bairro,cidade_desaparecimento:localDesaparecimento.cidade,uf_desaparecimento:localDesaparecimento.uf} : {}) };
       const { data, error } = await sb.from('pets').insert([pet]).select().single();
       if (error) { alert('Erro: ' + error.message); setSalvando(false); return; }
       onSaved(data);
@@ -1416,6 +1454,22 @@ const PetForm = ({ user, initialPet, onSaved, onCancel, codigoInicial }) => {
               📷 {form.foto ? 'Trocar' : 'Escolher foto'}
               <input type="file" accept="image/*" style={{display:'none'}} onChange={handleFoto} />
             </label>
+          </div>
+          <div className="mt-3">
+            <div className="label">Situação do pet</div>
+            <div className="grid grid-cols-2 gap-2" role="group" aria-label="Situação do pet">
+              <button type="button" disabled={salvando||alterandoStatus||statusPerdido} onClick={()=>mudarStatusNoCadastro(true)}
+                className="px-2 py-3 rounded-xl text-sm font-bold"
+                style={statusPerdido ? {background:'#b91c1c',color:'#fff',border:'1px solid #991b1b'} : {background:'#e5e7eb',color:'#374151',border:'1px solid #d1d5db'}}>
+                ⚠ Perdido
+              </button>
+              <button type="button" disabled={salvando||alterandoStatus||!statusPerdido} onClick={()=>mudarStatusNoCadastro(false)}
+                className="px-2 py-3 rounded-xl text-sm font-bold"
+                style={!statusPerdido ? {background:'#15803d',color:'#fff',border:'1px solid #166534'} : {background:'#e5e7eb',color:'#374151',border:'1px solid #d1d5db'}}>
+                ✓ Encontrado
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">{alterandoStatus ? 'Atualizando situação...' : emEdicao ? 'A situação é atualizada ao tocar no botão cinza. As outras alterações continuam com o botão Salvar.' : 'Ao cadastrar um pet novo, a situação escolhida será registrada ao salvar.'}</p>
           </div>
         </div>
         <div>
