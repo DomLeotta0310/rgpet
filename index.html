@@ -584,7 +584,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
         if (form.pin && form.pin.length !== 4) { setErro('O PIN precisa ter 4 dígitos'); setCarregando(false); return; }
         const { data: existe } = await sb.from('tutores').select('id').eq('email', form.email).maybeSingle();
         if (existe) { setErro('E-mail já cadastrado'); setCarregando(false); return; }
-        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, cidade: null, uf: null, cep: null, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true };
+        const novo = { id: Date.now(), nome: form.nome, email: form.email, senha: form.senha, pin: form.pin || null, cpf: null, telefone: null, whatsapp: null, endereco: null, bairro: null, cidade: null, uf: null, cep: null, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true };
         const { data, error } = await sb.from('tutores').insert([novo]).select().single();
         if (error) { setErro('Erro ao cadastrar: ' + error.message); setCarregando(false); return; }
         onLogin(data);
@@ -900,7 +900,7 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
   const [pin, setPin] = useState(user.pin || '');
   const [pinSalvo, setPinSalvo] = useState(false);
   const salvar = async () => {
-    const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, cidade: form.cidade, uf: form.uf, cep: form.cep, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true }).eq('id', user.id);
+    const { error } = await sb.from('tutores').update({ nome: form.nome, cpf: form.cpf, telefone: form.telefone, whatsapp: form.whatsapp, endereco: form.endereco, bairro: (form.bairro||'').trim(), cidade: form.cidade, uf: (form.uf||'').trim().toUpperCase(), cep: form.cep, notificar_leitura_qr: form.notificar_leitura_qr === true, notificar_pets_perdidos_regiao: form.notificar_pets_perdidos_regiao === true }).eq('id', user.id);
     if (error) { alert('Erro ao salvar: ' + error.message); return; }
     onUpdate(form); setSalvo(true); setTimeout(()=>setSalvo(false), 2000);
   };
@@ -922,6 +922,7 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
         </div>
         <div><div className="label">WhatsApp</div><input className="input-field" value={form.whatsapp||''} onChange={e=>setForm({...form,whatsapp:e.target.value})} /></div>
         <div><div className="label">Endereço</div><input className="input-field" value={form.endereco||''} onChange={e=>setForm({...form,endereco:e.target.value})} /></div>
+        <div><div className="label">Bairro</div><input className="input-field" value={form.bairro||''} onChange={e=>setForm({...form,bairro:e.target.value})} placeholder="Ex.: Jardim Umuarama" /><p className="text-xs text-gray-500 mt-1">Usado para identificar alertas de pets desaparecidos perto de você. Não é a localização onde um pet foi perdido.</p></div>
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2"><div className="label">Cidade</div><input className="input-field" value={form.cidade||''} onChange={e=>setForm({...form,cidade:e.target.value})} /></div>
           <div><div className="label">UF</div><input className="input-field" value={form.uf||''} onChange={e=>setForm({...form,uf:e.target.value})} /></div>
@@ -938,7 +939,7 @@ const TutorProfile = ({ user, onUpdate, onGerarPrevia }) => {
             <input type="checkbox" className="mt-1" checked={form.notificar_pets_perdidos_regiao===true} onChange={e=>setForm({...form,notificar_pets_perdidos_regiao:e.target.checked})}/>
             <span>Receber alertas de pets desaparecidos na minha região.</span>
           </label>
-          <p className="text-xs text-gray-600">Os alertas regionais usarão a cidade e o endereço cadastrados acima. Salvar estas preferências não ativa ainda os avisos no celular; o serviço de notificações será configurado em outra etapa.</p>
+          <p className="text-xs text-gray-600">Os alertas regionais usarão o bairro, a cidade e o estado cadastrados acima. Salvar estas preferências não ativa ainda os avisos no celular; o serviço de notificações será configurado em outra etapa.</p>
         </div>
         <button onClick={salvar} className="btn-primary w-full py-3 rounded-xl font-semibold">{salvo ? '✓ Dados salvos!' : '💾 Salvar dados'}</button>
         <div className="border-t pt-3">
