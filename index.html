@@ -394,6 +394,23 @@
  .pub-saude-linha { grid-template-columns:minmax(90px,40%) minmax(0,1fr); }
 }
 
+/* Impressão da identificação pública: botão acessível a tutor e a quem encontrou o pet. */
+.pub-imprimir-controle { max-width:820px; margin:0 auto 12px; text-align:center; }
+.pub-imprimir-botao { display:block; width:100%; max-width:320px; margin:0 auto; padding:12px 18px; border:1px solid #b9903e; border-radius:11px; background:#0b4a28; color:#fff; font-weight:800; cursor:pointer; }
+.pub-imprimir-controle p { font-size:11px; color:#315240; margin:6px auto 0; }
+@page { size:A4; margin:10mm; }
+@media print {
+ html, body, #root { padding:0 !important; margin:0 !important; background:#fff !important; min-height:0 !important; }
+ .pub-imprimir-controle { display:none !important; }
+ .pub-background { padding:0 !important; margin:0 !important; min-height:0 !important; background:#fff !important; }
+ .pub-documento { width:100% !important; max-width:none !important; margin:0 !important; padding:12px 13px 15px !important; box-shadow:none !important; border:3px double #bd9232 !important; border-radius:11px !important; background:#fffbf0 !important; }
+ .pub-documento, .pub-documento *, .pub-documento *::before, .pub-documento *::after { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+ .pub-secao, .pub-identidade, .pub-alerta, .pub-saude-linha, .pub-dado, .pub-secundario { break-inside:avoid; page-break-inside:avoid; }
+ .pub-faixa { break-after:avoid; page-break-after:avoid; }
+ .pub-rodape { break-inside:avoid; page-break-inside:avoid; }
+ .pub-foto img { object-fit:cover !important; }
+ .pub-rodape-apoio .pub-apoio-botao { border:1px solid #0b4a28 !important; }
+}
 /* Vacinação pública: no celular, cada dose vira ficha completa sem cortar Veterinário. */
 @media (max-width:600px) {
   .pub-tabela-scroll { overflow:visible; padding:10px; }
@@ -1783,6 +1800,10 @@ const PublicPetView = ({ publicId }) => {
   const numeroWhatsapp = whatsapp.startsWith('55') ? whatsapp : '55'+whatsapp;
   const temSaude = saudeCampos.some(([k,v])=>Boolean(v));
   return <main className="pub-background">
+    <div className="pub-imprimir-controle">
+      <button type="button" onClick={()=>window.print()} className="pub-imprimir-botao">🖨️ Imprimir ficha pública</button>
+      <p>Imprime somente as informações desta identificação pública, sem os documentos particulares do tutor.</p>
+    </div>
     <article className="pub-documento">
       <header className="pub-cabecalho">
         <MarcaDocumento/>
