@@ -1677,6 +1677,11 @@ const PublicPetView = ({ publicId }) => {
       if (!ativo) return;
       if (petData) {
         setPet(petData);
+        // Registra a abertura do link público de identificação. Não solicita GPS nem altera a página visível.
+        // O histórico privado tem retenção máxima prevista de 12 horas.
+        sb.rpc('registrar_leitura_petfiq', {p_public_id: publicId}).then(({error}) => {
+          if (error) console.warn('Registro de leitura indisponível');
+        });
         const { data: tutorData } = await sb.from('tutores').select('*').eq('id', petData.tutor_id).maybeSingle();
         if (ativo) setTutor(tutorData);
       }
