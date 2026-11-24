@@ -873,6 +873,7 @@ const Dashboard = ({ user, pets, orders, onOpenPet, onNewPet, onVerPet, onEditPe
                     {!c1 && <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">⏳ Aguardando pagamento</span>}
                     {c2 && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">QR ✓</span>}
                     {pet.is_lost && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠ PERDIDO</span>}
+                    {!pet.is_lost && pet.reencontrado_em && <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">🏠 VOLTOU AO LAR</span>}
                   </div>
                 </div>
               </div>
@@ -1473,8 +1474,8 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
       setProcessando(false);
     }
   };
-  const marcarPerdido = async () => { await sb.from('pets').update({ is_lost: true }).eq('id', pet.id); onRefresh(); };
-  const marcarEmCasa = async () => { await sb.from('pets').update({ is_lost: false }).eq('id', pet.id); onRefresh(); };
+  const marcarPerdido = async () => { if (pet.is_lost) return; const {error} = await sb.from('pets').update({ is_lost: true, perdido_em: new Date().toISOString(), reencontrado_em: null }).eq('id', pet.id); if(error) {alert('Não foi possível marcar como perdido: '+error.message);return;} onRefresh(); };
+  const marcarEmCasa = async () => { if (!pet.is_lost) return; const {error} = await sb.from('pets').update({ is_lost: false, reencontrado_em: new Date().toISOString() }).eq('id', pet.id); if(error) {alert('Não foi possível confirmar o reencontro: '+error.message);return;} onRefresh(); };
   return (
     <div className="mobile-container p-4">
       <div className="flex justify-between items-center mb-3">
@@ -1499,7 +1500,7 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
           <div className="mb-3"><RGDocumento pet={pet} tutor={user} qrLiberado={temCombo2} /></div>
           <div className="flex gap-2 mb-3">
             <button onClick={marcarPerdido} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={pet.is_lost ? {backgroundColor:'#dc2626', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>⚠ Perdido</button>
-            <button onClick={marcarEmCasa} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={!pet.is_lost ? {backgroundColor:'#16a34a', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>✓ Em casa</button>
+            <button onClick={marcarEmCasa} className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={!pet.is_lost ? {backgroundColor:'#16a34a', color:'white'} : {backgroundColor:'#f3f4f6', color:'#9ca3af'}}>✓ Voltou ao lar</button>
           </div>
           <div className="flex gap-1 mb-3 border-b overflow-x-auto">
             {['documentos','pagamento','qrcode'].map(t => (
