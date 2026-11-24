@@ -838,7 +838,7 @@ const Navbar = ({ user, currentView, onNavigate, onLogout, isAdmin }) => (
         <div className="font-bold text-sm">PetfiQ</div>
       </div>
       {user && (
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center justify-end gap-2 text-xs flex-wrap">
           <button onClick={() => onNavigate('dashboard')} className="px-3 py-1.5 rounded-full" style={currentView==='dashboard'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>Pets</button>
           <button onClick={() => onNavigate('perdidos')} className="px-3 py-1.5 rounded-full" style={currentView==='perdidos'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>🐾 Perdidos</button>
           <button onClick={() => onNavigate('profile')} className="px-3 py-1.5 rounded-full" style={currentView==='profile'?{backgroundColor:'#1a3c2e', color:'white'}:{backgroundColor:'#fffefb', color:'#6b7280', border:'1px solid #e8dfc8'}}>Meus dados</button>
