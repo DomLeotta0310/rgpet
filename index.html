@@ -770,15 +770,23 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
   const [filtro, setFiltro] = useState('regiao');
   const [busca, setBusca] = useState('');
   const [cidadeFiltro, setCidadeFiltro] = useState(user.cidade || '');
+  const [bairroFiltro, setBairroFiltro] = useState('');
+  const [ufFiltro, setUfFiltro] = useState((user.uf || '').toUpperCase());
+  const [regiaoAplicada, setRegiaoAplicada] = useState({cidade:user.cidade || '',bairro:'',uf:(user.uf || '').toUpperCase()});
   const [aba, setAba] = useState('perdidos');
   const norm = v => String(v || '').trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const compararCidade = p => !!cidadeFiltro.trim() &&
-    norm(p.cidade_desaparecimento) === norm(cidadeFiltro) &&
-    (!user.uf || !user.cidade || norm(user.cidade)!==norm(cidadeFiltro) || norm(p.uf_desaparecimento)===norm(user.uf));
+  const compararRegiao = p => !!regiaoAplicada.cidade.trim() &&
+    norm(p.cidade_desaparecimento) === norm(regiaoAplicada.cidade) &&
+    (!regiaoAplicada.uf.trim() || norm(p.uf_desaparecimento)===norm(regiaoAplicada.uf)) &&
+    (!regiaoAplicada.bairro.trim() || norm(p.bairro_desaparecimento).includes(norm(regiaoAplicada.bairro)));
+  const buscarRegiao = e => {
+    e.preventDefault();
+    setRegiaoAplicada({cidade:cidadeFiltro.trim(),bairro:bairroFiltro.trim(),uf:ufFiltro.trim().toUpperCase()});
+  };
   const perdidos = pets.filter(p => p.is_lost === true && p.public_id);
   const encontrados = pets.filter(p => p.is_lost !== true && !!p.reencontrado_em && p.public_id);
   const lista = (aba === 'perdidos' ? perdidos : encontrados)
-    .filter(p => filtro === 'brasil' || compararCidade(p))
+    .filter(p => filtro === 'brasil' || compararRegiao(p))
     .filter(p => filtro !== 'brasil' || !busca || [p.nome,p.raca,p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].some(v=>norm(v).includes(norm(busca))))
     .sort((a,b)=>new Date(b[aba==='perdidos'?'perdido_em':'reencontrado_em']||0)-new Date(a[aba==='perdidos'?'perdido_em':'reencontrado_em']||0));
   const atualizarLocal = async p => {
@@ -822,17 +830,28 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
         <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='regiao'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('regiao')}>Minha cidade</button>
         <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='brasil'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('brasil')}>Todo o Brasil</button>
       </div>
-      {filtro==='regiao' && <div>
-        <label className="label">Cidade do desaparecimento</label>
-        <input className="input-field" value={cidadeFiltro} onChange={e=>setCidadeFiltro(e.target.value)} placeholder="Ex.: São Paulo" />
-        <p className="text-xs text-gray-500 mt-1">Mostra apenas casos que tenham essa cidade registrada. Você pode pesquisar qualquer cidade.</p>
-      </div>}
+      {filtro==='regiao' && <form className="space-y-3" onSubmit={buscarRegiao}>
+        <div>
+          <label className="label" htmlFor="petfiq-busca-cidade">Cidade</label>
+          <input id="petfiq-busca-cidade" className="input-field" value={cidadeFiltro} onChange={e=>setCidadeFiltro(e.target.value)} placeholder="Ex.: São Paulo" required />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="col-span-2">
+            <label className="label" htmlFor="petfiq-busca-bairro">Bairro (opcional)</label>
+            <input id="petfiq-busca-bairro" className="input-field" value={bairroFiltro} onChange={e=>setBairroFiltro(e.target.value)} placeholder="Ex.: Jabaquara" />
+          </div>
+          <div>
+            <label className="label" htmlFor="petfiq-busca-uf">UF</label>
+            <input id="petfiq-busca-uf" className="input-field" maxLength="2" value={ufFiltro} onChange={e=>setUfFiltro(e.target.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2))} placeholder="SP" />
+          </div>
+        </div>
+        <button type="submit" disabled={!cidadeFiltro.trim()} className="btn-primary w-full py-3 rounded-xl text-sm font-bold" style={{opacity:cidadeFiltro.trim()?1:0.55}}>🔎 Buscar pets na região</button>
+        <p className="text-xs text-gray-600">A busca mostra animais com local de desaparecimento cadastrado. O bairro restringe os resultados; deixe vazio para ver toda a cidade.</p>
+      </form>}
       {filtro==='brasil' && <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça, bairro ou cidade"/>}
-      {filtro==='regiao' && !cidadeFiltro.trim() && <p className="text-xs text-amber-700">Informe uma cidade para consultar os casos da região.</p>}
-      {filtro==='regiao' && <p className="text-xs text-gray-500">Animais antigos sem região cadastrada não aparecem no filtro. O tutor pode completar essa informação na lista nacional.</p>}
     </div>
     <div className="space-y-3">
-      {!lista.length && <div className="card text-center text-sm text-gray-600">{filtro==='regiao' && !cidadeFiltro.trim() ? 'Digite uma cidade acima.' : 'Nenhum caso encontrado com essa localização. Se o pet estiver sem região cadastrada, use “Todo o Brasil” e informe a região no próprio card.'}</div>}
+      {!lista.length && <div className="card text-center text-sm text-gray-600">{filtro==='regiao' && !regiaoAplicada.cidade.trim() ? 'Digite sua cidade e toque em Buscar pets na região.' : filtro==='regiao' ? 'Não há casos cadastrados para '+[regiaoAplicada.bairro,regiaoAplicada.cidade,regiaoAplicada.uf].filter(Boolean).join(' · ')+'. Casos sem localização ficam em “Todo o Brasil”.' : 'Nenhum pet encontrado com esse termo.'}</div>}
       {lista.map(p=><article key={p.id} className="card" style={{border:'1px solid #d4bf84'}}>
         <div className="flex gap-3">
           <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden" style={{background:'#f0e7d0'}}>
