@@ -766,22 +766,41 @@ const PinScreen = ({ user, onUnlock, onUsarSenha }) => {
 };
 
 
-const PainelPetsPerdidos = ({ pets, user, onAbrirMeuPet }) => {
+const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
   const [filtro, setFiltro] = useState('regiao');
   const [busca, setBusca] = useState('');
+  const [cidadeFiltro, setCidadeFiltro] = useState(user.cidade || '');
   const [aba, setAba] = useState('perdidos');
   const norm = v => String(v || '').trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  const compararCidade = p => !!user.cidade && norm(p.cidade_desaparecimento) === norm(user.cidade) && norm(p.uf_desaparecimento) === norm(user.uf);
-  const minhaRegiao = p => compararCidade(p) && !!p.bairro_desaparecimento && (
-    norm(p.bairro_desaparecimento) === norm(user.bairro || '') ||
-    (!!user.endereco && norm(user.endereco).includes(norm(p.bairro_desaparecimento)))
-  );
+  const compararCidade = p => !!cidadeFiltro.trim() &&
+    norm(p.cidade_desaparecimento) === norm(cidadeFiltro) &&
+    (!user.uf || !user.cidade || norm(user.cidade)!==norm(cidadeFiltro) || norm(p.uf_desaparecimento)===norm(user.uf));
   const perdidos = pets.filter(p => p.is_lost === true && p.public_id);
   const encontrados = pets.filter(p => p.is_lost !== true && !!p.reencontrado_em && p.public_id);
   const lista = (aba === 'perdidos' ? perdidos : encontrados)
-    .filter(p => filtro === 'brasil' || (aba === 'reencontrados' ? compararCidade(p) : minhaRegiao(p) || compararCidade(p)))
+    .filter(p => filtro === 'brasil' || compararCidade(p))
     .filter(p => !busca || [p.nome,p.raca,p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].some(v=>norm(v).includes(norm(busca))))
     .sort((a,b)=>new Date(b[aba==='perdidos'?'perdido_em':'reencontrado_em']||0)-new Date(a[aba==='perdidos'?'perdido_em':'reencontrado_em']||0));
+  const atualizarLocal = async p => {
+    if (String(p.tutor_id) !== String(user.id) || !p.is_lost) return;
+    const bairro = window.prompt('Bairro onde o pet desapareceu (não informe endereço residencial):',p.bairro_desaparecimento||'');
+    if (bairro === null) return;
+    const cidade = window.prompt('Cidade onde o pet desapareceu:',p.cidade_desaparecimento||user.cidade||'');
+    if (cidade === null) return;
+    const uf = window.prompt('Sigla do estado:',p.uf_desaparecimento||user.uf||'SP');
+    if (uf === null) return;
+    if (!bairro.trim() || !cidade.trim() || !/^[A-Za-z]{2}$/.test(uf.trim())) {
+      alert('Preencha bairro, cidade e sigla do estado para permitir a busca por região.');
+      return;
+    }
+    const {error} = await sb.from('pets').update({
+      bairro_desaparecimento:bairro.trim(),
+      cidade_desaparecimento:cidade.trim(),
+      uf_desaparecimento:uf.trim().toUpperCase()
+    }).eq('id',p.id).eq('tutor_id',user.id);
+    if (error) { alert('Não foi possível salvar a região: '+error.message); return; }
+    if (onRefresh) await onRefresh();
+  };
   const compartilhar = async p => {
     const url = 'https://rgpet.vercel.app/?pet='+encodeURIComponent(p.public_id);
     const titulo = p.is_lost ? 'Pet desaparecido: '+p.nome : p.nome+' voltou ao lar!';
@@ -803,12 +822,17 @@ const PainelPetsPerdidos = ({ pets, user, onAbrirMeuPet }) => {
         <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='regiao'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('regiao')}>Minha cidade</button>
         <button className="flex-1 p-2 rounded-lg text-sm font-semibold" style={filtro==='brasil'?{background:'#1a3c2e',color:'white'}:{background:'#f5f1e6'}} onClick={()=>setFiltro('brasil')}>Todo o Brasil</button>
       </div>
-      <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça, bairro ou cidade"/>
-      {filtro==='regiao' && !user.cidade && <p className="text-xs text-amber-700">Preencha sua cidade em Meus dados para filtrar casos próximos.</p>}
-      {filtro==='regiao' && <p className="text-xs text-gray-500">Exibindo a cidade cadastrada, quando disponível. Alertas automáticos por bairro serão uma etapa posterior.</p>}
+      {filtro==='regiao' && <div>
+        <label className="label">Cidade do desaparecimento</label>
+        <input className="input-field" value={cidadeFiltro} onChange={e=>setCidadeFiltro(e.target.value)} placeholder="Ex.: São Paulo" />
+        <p className="text-xs text-gray-500 mt-1">Mostra apenas casos que tenham essa cidade registrada. Você pode pesquisar qualquer cidade.</p>
+      </div>}
+      <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça ou bairro"/>
+      {filtro==='regiao' && !cidadeFiltro.trim() && <p className="text-xs text-amber-700">Informe uma cidade para consultar os casos da região.</p>}
+      {filtro==='regiao' && <p className="text-xs text-gray-500">Animais antigos sem região cadastrada não aparecem no filtro. O tutor pode completar essa informação na lista nacional.</p>}
     </div>
     <div className="space-y-3">
-      {!lista.length && <div className="card text-center text-sm text-gray-600">Nenhum caso encontrado para este filtro. Experimente “Todo o Brasil”.</div>}
+      {!lista.length && <div className="card text-center text-sm text-gray-600">{filtro==='regiao' && !cidadeFiltro.trim() ? 'Digite uma cidade acima.' : 'Nenhum caso encontrado com essa localização. Se o pet estiver sem região cadastrada, use “Todo o Brasil” e informe a região no próprio card.'}</div>}
       {lista.map(p=><article key={p.id} className="card" style={{border:'1px solid #d4bf84'}}>
         <div className="flex gap-3">
           <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden" style={{background:'#f0e7d0'}}>
@@ -825,6 +849,7 @@ const PainelPetsPerdidos = ({ pets, user, onAbrirMeuPet }) => {
           <a href={'/?pet='+encodeURIComponent(p.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 py-2 text-center rounded-lg text-sm font-semibold" style={{background:'#1a3c2e',color:'white'}}>Ver identificação</a>
           <button className="flex-1 py-2 rounded-lg text-sm font-semibold" style={{border:'1px solid #b99945',color:'#1a3c2e'}} onClick={()=>compartilhar(p)}>Compartilhar</button>
         </div>
+        {p.is_lost && String(p.tutor_id)===String(user.id) && <button onClick={()=>atualizarLocal(p)} className="w-full mt-2 py-2 rounded-lg text-sm font-semibold" style={{border:'1px dashed #b99945',color:'#1a3c2e'}}>📍 {p.cidade_desaparecimento?'Corrigir região do desaparecimento':'Informar região do desaparecimento'}</button>}
       </article>)}
     </div>
   </main>;
@@ -2486,7 +2511,7 @@ const App = () => {
       {view === 'dashboard' && petSelecionado && !petEditando && (
         <PetDetail user={user} pet={pets.find(p=>p.id===petSelecionado.id)||petSelecionado} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} onBack={()=>{setPetSelecionado(null);setTabInicial(null);}} onEdit={()=>setPetEditando(petSelecionado)} initialTab={tabInicial} />
       )}
-      {view === 'perdidos' && <PainelPetsPerdidos pets={pets} user={user} />}
+      {view === 'perdidos' && <PainelPetsPerdidos pets={pets} user={user} onRefresh={carregarDados} />}
       {view === 'profile' && <TutorProfile user={user} onUpdate={(u)=>setUser({...user, ...u})} onGerarPrevia={()=>setView('preview')} />}
       {view === 'preview' && <PreviewScreen onBack={()=>setView('profile')} />}
       {view === 'admin' && isAdmin && <AdminPanel user={user} pets={pets} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados} />}
