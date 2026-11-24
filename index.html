@@ -779,7 +779,7 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
   const encontrados = pets.filter(p => p.is_lost !== true && !!p.reencontrado_em && p.public_id);
   const lista = (aba === 'perdidos' ? perdidos : encontrados)
     .filter(p => filtro === 'brasil' || compararCidade(p))
-    .filter(p => !busca || [p.nome,p.raca,p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].some(v=>norm(v).includes(norm(busca))))
+    .filter(p => filtro !== 'brasil' || !busca || [p.nome,p.raca,p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].some(v=>norm(v).includes(norm(busca))))
     .sort((a,b)=>new Date(b[aba==='perdidos'?'perdido_em':'reencontrado_em']||0)-new Date(a[aba==='perdidos'?'perdido_em':'reencontrado_em']||0));
   const atualizarLocal = async p => {
     if (String(p.tutor_id) !== String(user.id) || !p.is_lost) return;
@@ -827,7 +827,7 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
         <input className="input-field" value={cidadeFiltro} onChange={e=>setCidadeFiltro(e.target.value)} placeholder="Ex.: São Paulo" />
         <p className="text-xs text-gray-500 mt-1">Mostra apenas casos que tenham essa cidade registrada. Você pode pesquisar qualquer cidade.</p>
       </div>}
-      <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça ou bairro"/>
+      {filtro==='brasil' && <input className="input-field" value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Pesquisar por nome, raça, bairro ou cidade"/>}
       {filtro==='regiao' && !cidadeFiltro.trim() && <p className="text-xs text-amber-700">Informe uma cidade para consultar os casos da região.</p>}
       {filtro==='regiao' && <p className="text-xs text-gray-500">Animais antigos sem região cadastrada não aparecem no filtro. O tutor pode completar essa informação na lista nacional.</p>}
     </div>
