@@ -819,7 +819,7 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
     if (onRefresh) await onRefresh();
   };
   const compartilhar = async p => {
-    const url = 'https://rgpet.vercel.app/?pet='+encodeURIComponent(p.public_id);
+    const url = 'https://rgpet.vercel.app/api/pet-share?pet='+encodeURIComponent(p.public_id);
     const titulo = p.is_lost ? 'Pet desaparecido: '+p.nome : p.nome+' voltou ao lar!';
     try {
       if (navigator.share) await navigator.share({title:titulo,text:titulo,url});
