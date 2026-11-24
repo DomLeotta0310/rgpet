@@ -2020,6 +2020,35 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [filtroPetsADM, setFiltroPetsADM] = useState('todos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
   const [precos, setPrecos] = useState({ c1: settings.price_combo1, c2: settings.price_combo2 });
+  const [produtosExtras, setProdutosExtras] = useState(Array.isArray(settings.produtos_extras) ? settings.produtos_extras : []);
+  const [novoProduto, setNovoProduto] = useState({nome:'', tipo:'qr_fisico', preco:'', observacao:''});
+  const [salvandoProdutos, setSalvandoProdutos] = useState(false);
+  const valorEmReais = v => Number(String(v ?? '').replace(',','.'));
+  const salvarProdutosExtras = async lista => {
+    if (salvandoProdutos) return;
+    setSalvandoProdutos(true);
+    const {error} = await sb.from('configuracoes').update({produtos_extras:lista}).eq('id',1);
+    setSalvandoProdutos(false);
+    if (error) {alert('Não foi possível salvar o catálogo: '+error.message); return;}
+    setProdutosExtras(lista);
+    onRefresh();
+  };
+  const adicionarProdutoExtra = async () => {
+    const valor = valorEmReais(novoProduto.preco);
+    if (!novoProduto.nome.trim() || !Number.isFinite(valor) || valor < 0) {
+      alert('Informe o nome do produto e um preço válido.'); return;
+    }
+    const item = {
+      id: 'item_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      nome:novoProduto.nome.trim().slice(0,100),
+      tipo:novoProduto.tipo,
+      preco:Math.round(valor*100)/100,
+      observacao:novoProduto.observacao.trim().slice(0,280),
+      ativo:true
+    };
+    await salvarProdutosExtras([...produtosExtras,item]);
+    setNovoProduto({nome:'',tipo:'qr_fisico',preco:'',observacao:''});
+  };
   const [tutores, setTutores] = useState([]);
   const [qrPetSel, setQrPetSel] = useState(null);
   const [buscaQR, setBuscaQR] = useState('');
@@ -2249,6 +2278,33 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           <div><div className="label">Combo 1 (R$)</div><input type="number" step="0.01" className="input-field" value={precos.c1} onChange={e=>setPrecos({...precos, c1: e.target.value})} /></div>
           <div><div className="label">Combo 2 — QR Code (R$)</div><input type="number" step="0.01" className="input-field" value={precos.c2} onChange={e=>setPrecos({...precos, c2: e.target.value})} /></div>
           <button onClick={salvarPrecos} className="btn-primary w-full py-2 rounded-xl font-semibold text-sm">Salvar preços</button>
+          <div className="border-t pt-4 mt-3 space-y-3">
+            <h3 className="font-bold text-sm" style={{color:'#1a3c2e'}}>Produtos adicionais</h3>
+            <p className="text-xs text-gray-600">Cadastre quantos produtos e preços precisar. A venda e a liberação de novos produtos só serão habilitadas após configurarmos o pagamento e a entrega. Os Combos 1 e 2 atuais continuam funcionando como antes.</p>
+            {produtosExtras.map(item=><div key={item.id} className="p-3 rounded-xl" style={{border:'1px solid #d9c8a1',background:'#fffdf7'}}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold text-sm">{item.nome}</div>
+                  <div className="text-xs text-gray-500">{item.tipo==='qr_fisico'?'QR Code físico (documentos obrigatórios)':item.tipo==='qr_virtual'?'QR Code virtual (documentos obrigatórios)':'Produto / serviço adicional'} · R$ {Number(item.preco||0).toFixed(2).replace('.',',')}</div>
+                  {item.observacao && <div className="text-xs text-gray-600 mt-1">{item.observacao}</div>}
+                </div>
+                <button type="button" disabled={salvandoProdutos} onClick={()=>{if(window.confirm('Remover este produto do catálogo?'))salvarProdutosExtras(produtosExtras.filter(x=>x.id!==item.id));}} className="text-xs px-2 py-1 rounded-lg" style={{color:'#b91c1c',border:'1px solid #fca5a5'}}>Remover</button>
+              </div>
+            </div>)}
+            <div className="font-semibold text-xs">+ Adicionar produto</div>
+            <div><div className="label">Nome do produto</div><input className="input-field" value={novoProduto.nome} onChange={e=>setNovoProduto({...novoProduto,nome:e.target.value})} placeholder="Ex.: PetfiQ — Medalha QR física" maxLength="100"/></div>
+            <div><div className="label">Tipo</div>
+              <select className="input-field" value={novoProduto.tipo} onChange={e=>setNovoProduto({...novoProduto,tipo:e.target.value})}>
+                <option value="qr_fisico">QR Code físico (sem exigir compra do QR virtual)</option>
+                <option value="qr_virtual">QR Code virtual</option>
+                <option value="adicional">Outro produto / serviço</option>
+              </select>
+            </div>
+            <div><div className="label">Preço (R$)</div><input className="input-field" type="number" min="0" step="0.01" inputMode="decimal" value={novoProduto.preco} onChange={e=>setNovoProduto({...novoProduto,preco:e.target.value})} placeholder="Ex.: 23,65"/></div>
+            <div><div className="label">Observação (opcional)</div><input className="input-field" maxLength="280" value={novoProduto.observacao} onChange={e=>setNovoProduto({...novoProduto,observacao:e.target.value})} placeholder="Ex.: produto entregue ao tutor"/></div>
+            <button type="button" disabled={salvandoProdutos} onClick={adicionarProdutoExtra} className="btn-primary w-full py-3 rounded-xl text-sm font-semibold">{salvandoProdutos?'Salvando...':'+ Adicionar produto'}</button>
+            <p className="text-xs text-gray-600">Regra comercial definida: documentos são obrigatórios; o cliente escolhe QR virtual ou físico. O QR físico não exige comprar também o virtual.</p>
+          </div>
         </div>
       )}
 
