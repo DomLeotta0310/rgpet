@@ -2313,8 +2313,8 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
       const pet=pets.find(p=>String(p.id)===String(o.pet_id));
       const data=o.criado_em?new Date(o.criado_em):new Date(Number(o.id));
       return [Number.isFinite(data.getTime())?data.toLocaleDateString('pt-BR'):'',o.id,o.tipo==='combo1'?'Documentos digitais':'QR virtual',pet?.nome||'',Number(o.valor||0).toFixed(2).replace('.',','),o.status];
-    })].map(l=>l.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\\r\\n');
-    const blob=new Blob(['\\uFEFF'+texto],{type:'text/csv;charset=utf-8'});
+    })].map(l=>l.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+    const blob=new Blob(['\uFEFF'+texto],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const link=document.createElement('a');link.href=url;link.download='rgpet-financeiro-'+new Date().toISOString().slice(0,10)+'.csv';link.click();
     URL.revokeObjectURL(url);
