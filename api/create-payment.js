@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       items:[{title,quantity:1,unit_price:cents/100,currency_id:'BRL'}],
       payer:{email:tutor?.email||undefined},
       back_urls:{
-        success:ROOT+'/?pagamento=sucesso&pet='+encodeURIComponent(String(petId))+'&tipo='+tipo,
+        success:ROOT+'/?pagamento=sucesso&pedido='+encodeURIComponent(String(orderId)),
         failure:ROOT+'/?pagamento=falha',
         pending:ROOT+'/?pagamento=pendente'
       },
