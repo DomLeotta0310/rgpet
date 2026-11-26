@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PetfiQ - RG Pet</title>
-<link rel="manifest" href="/manifest.json?v=2">
+<link rel="manifest" id="petfiq-manifest" href="/manifest.json?v=2">
+<script>
+(function(){
+  if (new URLSearchParams(location.search).get('adm_app') !== '1') return;
+  document.title='PetfiQ ADM — Cão Leotta';
+  document.getElementById('petfiq-manifest').href='/manifest-admin.json?v=1';
+  document.querySelector('meta[name="theme-color"]').content='#422719';
+  document.documentElement.classList.add('petfiq-adm-app');
+})();
+</script>
 <meta name="theme-color" content="#1a3c2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -505,6 +514,18 @@
   .pub-rodape-apoio .pub-apoio-botao { max-width:260px !important; margin:4px auto 0 !important; padding:5px 7px !important; font-size:10px !important; border-radius:5px !important; }
   .pub-alerta, .pub-secao, .pub-identidade, .pub-saude-linha, .pub-dado, .pub-secundario, .pub-rodape { break-inside:avoid; page-break-inside:avoid; }
 }
+/* Identidade do acesso administrativo independente (não altera o RG Pet do tutor). */
+  .petfiq-adm-app body { background:#f8f0e4; color:#422719; }
+  .petfiq-adm-app .admin-login-screen { background:linear-gradient(160deg,#432819 0%,#754832 47%,#f8f0e4 47%); }
+  .petfiq-adm-app .admin-login-screen .card { border:1px solid #dbc19a; box-shadow:0 10px 34px rgba(46,25,14,.14); }
+  .petfiq-adm-app .admin-login-screen .btn-primary { background:#593623; }
+  .petfiq-adm-app .admin-login-screen .input-field:focus { border-color:#ab8151; }
+  .petfiq-adm-app .admin-app-header { background:#422719; color:#fff4df; border-bottom:3px solid #c69b54; }
+  .petfiq-adm-app .admin-app-content .mobile-container { max-width:1200px; }
+  .petfiq-adm-app .admin-app-content .card { border-color:#e5d5bd; }
+  .petfiq-adm-app .admin-app-content .btn-primary { background:#563522; }
+  .petfiq-adm-app .admin-app-content .card button:focus-visible { outline:3px solid #d3a65e; outline-offset:2px; }
+  @media(min-width:1000px){.petfiq-adm-app .admin-app-content .grid.grid-cols-2.sm\\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr));}}
 </style>
 </head>
 <body>
@@ -657,8 +678,8 @@ const LandingPage = ({ onLoginClick, onRegisterClick }) => (
   </div>
 );
 
-const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
-  const [modo, setModo] = useState(initialRegister ? 'register' : 'login');
+const LoginScreen = ({ onLogin, initialRegister, onBackToLanding, adminOnly=false }) => {
+  const [modo, setModo] = useState(adminOnly ? 'login' : initialRegister ? 'register' : 'login');
   const [form, setForm] = useState({ nome: '', email: '', senha: '', pin: '', notificar_leitura_qr: false, notificar_pets_perdidos_regiao: false });
   const [resetEmail, setResetEmail] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
@@ -669,7 +690,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => { setModo(initialRegister ? 'register' : 'login'); setErro(''); setMsg(''); }, [initialRegister]);
+  useEffect(() => { setModo(adminOnly ? 'login' : initialRegister ? 'register' : 'login'); setErro(''); setMsg(''); }, [initialRegister,adminOnly]);
 
   const submitLogin = async (e) => {
     e.preventDefault();
@@ -696,12 +717,13 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
   const voltarAoLogin = () => { setModo('login'); setErro(''); setMsg(''); setResetEtapa(1); setResetEmail(''); setNovaSenha(''); setForm({ nome: '', email: resetEmail, senha: '', pin: '' }); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor:'#faf6ec'}}>
+    <div className={"min-h-screen flex items-center justify-center p-4"+(adminOnly?" admin-login-screen":"")} style={adminOnly?undefined:{backgroundColor:'#faf6ec'}}>
       <div className="w-full max-w-sm">
-        <button onClick={onBackToLanding} className="text-xs text-gray-500 mb-4">← Voltar</button>
+        {!adminOnly && <button onClick={onBackToLanding} className="text-xs text-gray-500 mb-4">← Voltar</button>}
         <div className="text-center mb-6">
           <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl mx-auto mb-2" style={{backgroundColor:'#eab308'}}>🐾</div>
-          <div className="font-bold text-base">PetfiQ</div>
+          <div className="font-bold text-base">{adminOnly?'PetfiQ ADM':'PetfiQ'}</div>
+          {adminOnly && <p className="text-xs mt-2" style={{color:'#7a5138'}}>Acesso exclusivo da administração</p>}
         </div>
         <div className="card">
           {modo === 'login' && (
@@ -722,7 +744,7 @@ const LoginScreen = ({ onLogin, initialRegister, onBackToLanding }) => {
                 <button type="submit" disabled={carregando} className="btn-primary w-full py-3 rounded-xl font-semibold">{carregando ? 'Entrando...' : 'Entrar'}</button>
                 <div className="text-center"><button type="button" onClick={()=>{setModo('reset');setErro('');setMsg('');setResetEtapa(1);}} className="text-xs text-gray-500 underline">Esqueci minha senha</button></div>
               </form>
-              <p className="text-center text-xs text-gray-500 mt-5 cursor-pointer" onClick={()=>{setModo('register');setErro('');setMsg('');}}>Não tenho conta — quero cadastrar meu pet</p>
+              {!adminOnly && <p className="text-center text-xs text-gray-500 mt-5 cursor-pointer" onClick={()=>{setModo('register');setErro('');setMsg('');}}>Não tenho conta — quero cadastrar meu pet</p>}
             </>
           )}
           {modo === 'register' && (
@@ -2794,8 +2816,9 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 };
 
 const App = () => {
+  const adminAppMode = new URLSearchParams(window.location.search).get('adm_app') === '1';
   const [user, setUser] = useState(null);
-  const [view, setView] = useState('landing');
+  const [view, setView] = useState(adminAppMode ? 'login' : 'landing');
   const [pets, setPets] = useState([]);
   const [orders, setOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
@@ -2835,13 +2858,14 @@ const App = () => {
     if (codigoParam) {
       setCodigoInicial(codigoParam);
     }
-    if (params.get('admin') === '1') setIsAdmin(true);
+    if (params.get('admin') === '1' || adminAppMode) setIsAdmin(true);
     if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Retorno do pagamento recebido. Aguarde a confirmação do Mercado Pago para liberar os documentos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     else if (pagamento === 'falha' || pagamento === 'pendente') { setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     
     carregarDados();
     const atualizarAoVoltar = () => { if (document.visibilityState === 'visible') carregarDados(); };
     document.addEventListener('visibilitychange', atualizarAoVoltar);
+    if (adminAppMode) return; // O ADM independente sempre começa solicitando login.
     const saved = localStorage.getItem('rgpet_sessao');
     if (saved) {
       try {
@@ -2864,8 +2888,9 @@ const App = () => {
     }
   }, []);
 
-  const handleLogin = (u) => { 
-    setUser(u); 
+  const handleLogin = (u) => {
+    setUser(u);
+    if (adminAppMode) { setView('admin'); return; } 
     localStorage.setItem('rgpet_sessao', JSON.stringify({ userId: u.id })); 
     if (codigoInicial) {
       setView('newPet');
@@ -2874,7 +2899,7 @@ const App = () => {
     }
   };
 
-  const handleLogout = () => { setUser(null); setPetSelecionado(null); setView('landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); setCodigoInicial(null); localStorage.removeItem('rgpet_sessao'); };
+  const handleLogout = () => { setUser(null); setPetSelecionado(null); setView(adminAppMode ? 'login' : 'landing'); setNeedPin(false); setVerPet(null); setPetEditando(null); setCodigoInicial(null); localStorage.removeItem('rgpet_sessao'); };
   
   const handleUnlockPin = async () => {
     const saved = JSON.parse(localStorage.getItem('rgpet_sessao') || '{}');
@@ -2889,6 +2914,21 @@ const App = () => {
   
   const handleUsarSenha = () => { localStorage.removeItem('rgpet_sessao'); setNeedPin(false); setUser(null); setPinUser(null); setView('login'); };
 
+  if (adminAppMode) {
+    if (!user) return <LoginScreen adminOnly={true} onLogin={handleLogin} initialRegister={false} onBackToLanding={()=>{}} />;
+    return <div className="min-h-screen admin-app-content" style={{background:'#f8f0e4'}}>
+      <header className="admin-app-header sticky top-0 z-40">
+        <div className="mx-auto px-4 py-3 flex items-center justify-between gap-3" style={{maxWidth:1200}}>
+          <div className="flex items-center gap-3">
+            <img src="/petfiq-admin-icon.svg" width="40" height="40" alt="PetfiQ ADM"/>
+            <div><div className="text-base font-bold">PetfiQ ADM</div><div className="text-xs" style={{color:'#e3c998'}}>Central Cão Leotta</div></div>
+          </div>
+          <button type="button" onClick={handleLogout} className="rounded-xl px-4 py-2 text-sm font-semibold" style={{color:'#422719',background:'#f9ead1'}}>Sair</button>
+        </div>
+      </header>
+      <AdminPanel user={user} pets={pets} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados}/>
+    </div>;
+  }
   if (publicId) return <PublicPetView publicId={publicId} />;
   if (needPin && !user && pinUser) return <PinScreen user={pinUser} onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} />;
   if (!user) {
