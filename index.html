@@ -2184,6 +2184,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
   const [qrPetSel, setQrPetSel] = useState(null);
   const [buscaQR, setBuscaQR] = useState('');
   const [edicaoAdmin, setEdicaoAdmin] = useState(null);
+  const [petVisualizando, setPetVisualizando] = useState(null);
   const [salvandoAdmin, setSalvandoAdmin] = useState(false);
   
   const [loteLetra, setLoteLetra] = useState('A');
@@ -2604,7 +2605,12 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                     {pet.foto ? <img src={pet.foto} alt={'Foto de '+pet.nome} style={{width:'100%',height:'100%',objectFit:'cover'}}/> : <div className="w-full h-full flex items-center justify-center text-3xl">🐾</div>}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm" style={{color:'#1a3c2e'}}>{pet.nome}</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-bold text-sm" style={{color:'#1a3c2e'}}>{pet.nome}</div>
+                      <button type="button" onClick={()=>setPetVisualizando(pet)} title={'Ver ficha de '+pet.nome} aria-label={'Ver ficha de '+pet.nome} className="rounded-lg flex-shrink-0 flex items-center justify-center" style={{width:38,height:36,border:'1px solid #d6ba78',background:'#fff9ed',color:'#1a3c2e'}}>
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      </button>
+                    </div>
                     <div className="text-xs text-gray-600">{pet.especie||'Pet'} · {pet.raca||'Raça não informada'}{pet.sexo?' · '+pet.sexo:''}</div>
                     <div className="text-xs text-gray-500 truncate">Tutor: {t?.nome || '—'}</div>
                     <div className="text-[10px] text-gray-500">{pet.registro_id || 'CL-'+String(pet.id).slice(-6)}</div>
@@ -2732,6 +2738,56 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
           </div>
         </div>
       )}
+      {petVisualizando && (() => {
+        const pet=pets.find(p=>String(p.id)===String(petVisualizando.id))||petVisualizando;
+        const tutor=tutores.find(t=>String(t.id)===String(pet.tutor_id));
+        const Campo=({nome,valor})=><div className="py-2 border-b" style={{borderColor:'#eee3d0'}}><div className="text-[10px] uppercase tracking-wide font-bold" style={{color:'#476151'}}>{nome}</div><div className="text-sm break-words" style={{color:'#173c2e'}}>{valor===undefined||valor===null||valor===''?'Não informado':String(valor)}</div></div>;
+        return <div className="fixed inset-0 z-50 overflow-y-auto" style={{background:'rgba(14,31,24,.78)'}} role="dialog" aria-modal="true" aria-label={'Ficha de '+pet.nome}>
+          <div className="mobile-container p-3 sm:p-5 my-3">
+            <div className="rounded-2xl overflow-hidden" style={{background:'#fffaf0',border:'2px solid #bb9853'}}>
+              <div className="flex justify-between items-center p-4" style={{background:'#173c2e',color:'#fff'}}>
+                <div><div className="text-[11px] uppercase" style={{color:'#e6ce96'}}>ADM • Consulta</div><h2 className="text-lg font-bold">Ficha do pet</h2></div>
+                <button type="button" onClick={()=>setPetVisualizando(null)} aria-label="Fechar ficha" className="rounded-lg font-bold px-3 py-2 text-sm" style={{background:'#fff',color:'#173c2e'}}>✕ Fechar</button>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex gap-3 items-center">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style={{background:'#f0e5d1',border:'1px solid #dec48c'}}>{pet.foto?<img src={pet.foto} alt={'Foto de '+pet.nome} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span className="text-3xl">🐾</span>}</div>
+                  <div className="min-w-0"><div className="font-bold text-lg" style={{color:'#173c2e'}}>{pet.nome}</div><div className="text-xs text-gray-600 break-all">{pet.registro_id||'Sem número de registro'}</div><div className="text-xs font-bold mt-2" style={{color:pet.is_lost?'#b91c1c':'#15803d'}}>{pet.is_lost?'⚠ PET PERDIDO':'✓ PET ENCONTRADO / EM CASA'}</div></div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3">
+                  <Campo nome="Espécie" valor={pet.especie}/><Campo nome="Raça" valor={pet.raca}/>
+                  <Campo nome="Sexo" valor={pet.sexo}/><Campo nome="Porte" valor={pet.porte}/>
+                  <Campo nome="Nascimento" valor={pet.data_nascimento}/><Campo nome="Peso" valor={pet.peso}/>
+                  <Campo nome="Pelagem" valor={pet.cor_pelagem}/><Campo nome="Castrado" valor={pet.castrado}/>
+                  <Campo nome="Microchip" valor={pet.microchip}/>
+                  <Campo nome="Código do QR" valor={pet.public_id}/>
+                </div>
+                {pet.is_lost && <div className="rounded-xl p-3" style={{background:'#fff1f2',color:'#991b1b'}}><div className="text-xs font-bold">Local informado do desaparecimento</div><div className="text-sm">{[pet.bairro_desaparecimento,pet.cidade_desaparecimento,pet.uf_desaparecimento].filter(Boolean).join(' • ')||'Não informado'}</div></div>}
+                <div className="rounded-xl p-3" style={{background:'#f6f0e3'}}>
+                  <h3 className="text-sm font-bold" style={{color:'#173c2e'}}>Tutor e contato</h3>
+                  <Campo nome="Responsável" valor={tutor?.nome}/>
+                  <Campo nome="WhatsApp" valor={tutor?.whatsapp||tutor?.telefone}/>
+                  <Campo nome="E-mail" valor={tutor?.email}/>
+                </div>
+                <div className="rounded-xl p-3" style={{background:'#f6f0e3'}}>
+                  <h3 className="text-sm font-bold" style={{color:'#173c2e'}}>Saúde e emergência</h3>
+                  <Campo nome="Doenças / Condições" valor={pet.saude?.doencas}/>
+                  <Campo nome="Alergias" valor={pet.saude?.alergias}/>
+                  <Campo nome="Medicamentos" valor={pet.saude?.medicamentos}/>
+                  <Campo nome="Comportamento" valor={pet.saude?.comportamento}/>
+                  <Campo nome="Contato de emergência" valor={[pet.emergencia?.nome,pet.emergencia?.telefone].filter(Boolean).join(' • ')}/>
+                  <Campo nome="Vacinas registradas" valor={Array.isArray(pet.vaccinations)?pet.vaccinations.length:0}/>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={()=>setPetVisualizando(null)} className="btn-primary flex-1 rounded-xl py-3 text-sm font-bold">Fechar ficha</button>
+                  {pet.public_id && <a href={'/?pet='+encodeURIComponent(pet.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 text-center rounded-xl py-3 text-sm font-bold" style={{color:'#173c2e',background:'#e9d6a8'}}>Ficha pública ↗</a>}
+                </div>
+                <p className="text-xs text-gray-500 text-center">Consulta administrativa. Nenhuma informação será alterada.</p>
+              </div>
+            </div>
+          </div>
+        </div>;
+      })()}
       {qrPetSel && <QRCodeFisicoModal pet={qrPetSel} tutor={tutores.find(x => x.id === qrPetSel.tutor_id)} onClose={()=>setQrPetSel(null)} />}
     </div>
   );
