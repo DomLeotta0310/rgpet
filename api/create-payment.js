@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       return res.status(400).json({error:'Pedido inválido'});
     }
     const headers={apikey:supabaseKey,Authorization:'Bearer '+supabaseKey};
-    const endpoint = supabaseUrl+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(String(orderId))+'&select=id,pet_id,tutor_id,tipo,valor,status,metodo&limit=1';
+    const endpoint = supabaseUrl+'/rest/v1/pedidos?id=eq.'+encodeURIComponent(String(orderId))+'&select=id,pet_id,tutor_id,tipo,valor,valor_base,cupom,status,metodo&limit=1';
     const orderResp = await fetch(endpoint,{headers});
     if (!orderResp.ok) return res.status(502).json({error:'Não foi possível conferir o pedido'});
     const pedidos = await orderResp.json();
@@ -35,6 +35,28 @@ export default async function handler(req, res) {
     if (!Number.isFinite(cents) || cents<1 || cents>100000000 || moneyInCents(valor)!==cents) {
       return res.status(400).json({error:'Valor do pedido não confere'});
     }
+    // O preço oficial é sempre lido no servidor; não confiamos em preços enviados ou gravados pelo navegador.
+    const configResp = await fetch(supabaseUrl+'/rest/v1/configuracoes?id=eq.1&select=price_combo1,price_combo2,payment_mode&limit=1',{headers});
+    if (!configResp.ok) return res.status(502).json({error:'Não foi possível validar o preço'});
+    const config=(await configResp.json())?.[0];
+    if (!config || config.payment_mode!=='auto') return res.status(409).json({error:'Cobrança automática indisponível'});
+    const price = tipo==='combo1' ? config.price_combo1 : config.price_combo2;
+    const baseCents=moneyInCents(price);
+    if (!Number.isFinite(baseCents) || moneyInCents(pedido.valor_base)!==baseCents) {
+      return res.status(409).json({error:'Preço oficial alterado. Atualize a página e tente novamente'});
+    }
+    let discounted=baseCents;
+    if (pedido.cupom) {
+      const couponResp=await fetch(supabaseUrl+'/rest/v1/cupons?code=eq.'+encodeURIComponent(pedido.cupom)+'&select=code,desconto,ativo&limit=1',{headers});
+      if (!couponResp.ok) return res.status(502).json({error:'Não foi possível verificar o cupom'});
+      const coupon=(await couponResp.json())?.[0];
+      const percent=Number(coupon?.desconto);
+      if (!coupon?.ativo || !Number.isInteger(percent) || percent<0 || percent>100) {
+        return res.status(409).json({error:'Cupom inválido ou expirado'});
+      }
+      discounted=Math.round(baseCents*(100-percent)/100);
+    }
+    if (cents!==discounted) return res.status(409).json({error:'Valor do pedido diferente do preço oficial'});
     const petResp=await fetch(supabaseUrl+'/rest/v1/pets?id=eq.'+encodeURIComponent(String(petId))+'&select=id,tutor_id&limit=1',{headers});
     if (!petResp.ok) return res.status(502).json({error:'Não foi possível conferir o pet'});
     const pet=(await petResp.json())?.[0];
