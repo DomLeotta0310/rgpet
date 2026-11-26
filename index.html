@@ -2143,7 +2143,10 @@ const QRCodeFisicoModal = ({ pet, tutor, onClose, mostrarEndereco = true }) => {
 };
 
 const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
-  const [aba, setAba] = useState('pedidos');
+  const [aba, setAba] = useState('visao');
+  const [periodoFinanceiro, setPeriodoFinanceiro] = useState('mes');
+  const [dataInicioFinanceiro, setDataInicioFinanceiro] = useState('');
+  const [dataFimFinanceiro, setDataFimFinanceiro] = useState('');
   const [filtroPedidos, setFiltroPedidos] = useState('todos');
   const [filtroPetsADM, setFiltroPetsADM] = useState('todos');
   const [novoCupom, setNovoCupom] = useState({ code:'', desconto: 100 });
@@ -2277,6 +2280,52 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     onRefresh();
   };
 
+  const brlFinanceiro = valor => Number(valor || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const inicioDoDia = valor => new Date(valor.getFullYear(),valor.getMonth(),valor.getDate());
+  const agoraFinanceiro = new Date();
+  const inicioFinanceiro = inicioDoDia(agoraFinanceiro);
+  if (periodoFinanceiro === 'semana') {
+    const dia = (inicioFinanceiro.getDay()+6)%7;
+    inicioFinanceiro.setDate(inicioFinanceiro.getDate()-dia);
+  } else if (periodoFinanceiro === 'mes') inicioFinanceiro.setDate(1);
+  const pedidosFinanceiros = orders.filter(o => {
+    const dataPedido = o.criado_em ? new Date(o.criado_em) : new Date(Number(o.id));
+    if (!Number.isFinite(dataPedido.getTime())) return false;
+    if (periodoFinanceiro === 'personalizado') {
+      if (dataInicioFinanceiro && dataPedido < new Date(dataInicioFinanceiro+'T00:00:00')) return false;
+      if (dataFimFinanceiro && dataPedido >= new Date(dataFimFinanceiro+'T00:00:00').getTime()+86400000) return false;
+      return true;
+    }
+    return dataPedido >= inicioFinanceiro && dataPedido <= agoraFinanceiro;
+  });
+  const pagosFinanceiros = pedidosFinanceiros.filter(o => o.status === 'pago');
+  const pendentesFinanceiros = pedidosFinanceiros.filter(o => o.status === 'pendente');
+  const recebidoFinanceiro = pagosFinanceiros.reduce((s,o)=>s+Number(o.valor||0),0);
+  const pendenteFinanceiro = pendentesFinanceiros.reduce((s,o)=>s+Number(o.valor||0),0);
+  const mediaFinanceiro = pagosFinanceiros.length ? recebidoFinanceiro/pagosFinanceiros.length : 0;
+  const totalsTipoFinanceiro = tipo => {
+    const lista=pagosFinanceiros.filter(o=>o.tipo===tipo);
+    return {qtd:lista.length,valor:lista.reduce((s,o)=>s+Number(o.valor||0),0)};
+  };
+  const exportarFinanceiro = () => {
+    const cabecalho=['Data do pedido','Pedido','Produto','Pet','Valor (R$)','Situação'];
+    const texto = [cabecalho,...pedidosFinanceiros.map(o=>{
+      const pet=pets.find(p=>String(p.id)===String(o.pet_id));
+      const data=o.criado_em?new Date(o.criado_em):new Date(Number(o.id));
+      return [Number.isFinite(data.getTime())?data.toLocaleDateString('pt-BR'):'',o.id,o.tipo==='combo1'?'Documentos digitais':'QR virtual',pet?.nome||'',Number(o.valor||0).toFixed(2).replace('.',','),o.status];
+    })].map(l=>l.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\\r\\n');
+    const blob=new Blob(['\\uFEFF'+texto],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');link.href=url;link.download='rgpet-financeiro-'+new Date().toISOString().slice(0,10)+'.csv';link.click();
+    URL.revokeObjectURL(url);
+  };
+  const cardFinanceiro = (rotulo,valor,cor) => (
+    <div className="rounded-xl p-3" style={{background:'#fffefb',border:'1px solid #e8dfc8'}}>
+      <div className="text-xs text-gray-500 mb-1">{rotulo}</div>
+      <div className="text-lg font-bold" style={{color:cor||'#1a3c2e'}}>{valor}</div>
+    </div>
+  );
+
   const pedidosFiltrados = orders.filter(o => {
     if (filtroPedidos === 'todos') return true;
     if (filtroPedidos === 'pagos') return o.status === 'pago';
@@ -2346,10 +2395,73 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
     <div className="mobile-container p-4">
       <h1 className="text-xl font-bold mb-4">Painel Admin</h1>
       <div className="flex gap-1 mb-3 border-b overflow-x-auto">
-        {['pedidos','precos','cupons','pets','qrfisico','usuarios'].map(t => (
-          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
+        {['visao','financeiro','pedidos','precos','cupons','pets','qrfisico','usuarios'].map(t => (
+          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'visao' ? 'Visão Geral' : t === 'financeiro' ? 'Financeiro' : t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
         ))}
       </div>
+
+      {(aba === 'visao' || aba === 'financeiro') && (
+        <div className="space-y-3 mb-4">
+          <div className="card">
+            <h2 className="text-base font-bold" style={{color:'#1a3c2e'}}>{aba === 'visao' ? 'Visão geral do RG Pet' : 'Controle financeiro'}</h2>
+            <p className="text-xs text-gray-500 mt-1">Totais agrupados pela data de criação do pedido, não pela data do crédito bancário. Valores brutos, sem taxas do Mercado Pago.</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[['dia','Hoje'],['semana','Semana'],['mes','Mês'],['personalizado','Personalizado']].map(([k,rotulo])=>(
+                <button key={k} type="button" onClick={()=>setPeriodoFinanceiro(k)}
+                  className="text-xs font-semibold rounded-full px-3 py-2" style={periodoFinanceiro===k?{background:'#1a3c2e',color:'#fff'}:{background:'#f3f4f6',color:'#374151'}}>
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+            {periodoFinanceiro==='personalizado' && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <label className="text-xs text-gray-600">De<input type="date" className="input-field mt-1" value={dataInicioFinanceiro} onChange={e=>setDataInicioFinanceiro(e.target.value)}/></label>
+                <label className="text-xs text-gray-600">Até<input type="date" className="input-field mt-1" value={dataFimFinanceiro} onChange={e=>setDataFimFinanceiro(e.target.value)}/></label>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {cardFinanceiro('Recebido • pedidos pagos',brlFinanceiro(recebidoFinanceiro),'#15803d')}
+            {cardFinanceiro('Em aberto • pendentes',brlFinanceiro(pendenteFinanceiro),'#a16207')}
+            {cardFinanceiro('Vendas confirmadas',String(pagosFinanceiros.length))}
+            {cardFinanceiro('Ticket médio',brlFinanceiro(mediaFinanceiro))}
+          </div>
+          {aba === 'visao' && (
+            <div className="grid grid-cols-3 gap-2">
+              {cardFinanceiro('Pets cadastrados',String(pets.length))}
+              {cardFinanceiro('Tutores',String(tutores.length))}
+              {cardFinanceiro('Pets perdidos',String(pets.filter(p=>p.is_lost).length),'#b91c1c')}
+            </div>
+          )}
+          <div className="card">
+            <h3 className="text-sm font-bold mb-2">Vendas por produto</h3>
+            {[['combo1','Documentos digitais'],['combo2','QR virtual']].map(([tipo,nome])=>{
+              const info=totalsTipoFinanceiro(tipo);
+              return <div key={tipo} className="flex justify-between items-center text-xs border-b py-2 last:border-0"><span>{nome} • {info.qtd} pagos</span><strong>{brlFinanceiro(info.valor)}</strong></div>;
+            })}
+          </div>
+          {aba === 'financeiro' ? (
+            <div className="card">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h3 className="text-sm font-bold">Movimentação ({pedidosFinanceiros.length})</h3>
+                <button type="button" onClick={exportarFinanceiro} className="text-xs font-semibold rounded-lg px-3 py-2" style={{background:'#1a3c2e',color:'#fff'}}>Baixar CSV</button>
+              </div>
+              {pedidosFinanceiros.length===0 && <p className="text-xs text-gray-500">Nenhum pedido no período selecionado.</p>}
+              {pedidosFinanceiros.slice().sort((a,b)=>Number(b.id)-Number(a.id)).map(o=>{
+                const pet=pets.find(p=>String(p.id)===String(o.pet_id));
+                const dt=o.criado_em?new Date(o.criado_em):new Date(Number(o.id));
+                return <div key={o.id} className="border-t py-3 flex justify-between gap-2">
+                  <div className="text-xs"><div className="font-semibold">{o.tipo==='combo1'?'Documentos digitais':'QR virtual'} • {pet?.nome||'Pet'}</div><div className="text-gray-500">{Number.isFinite(dt.getTime())?dt.toLocaleDateString('pt-BR'):'Data não disponível'} • Pedido {o.id}</div></div>
+                  <div className="text-right text-xs"><div className="font-bold">{brlFinanceiro(o.valor)}</div><div style={{color:o.status==='pago'?'#15803d':'#a16207'}}>{o.status==='pago'?'Pago':o.status==='pendente'?'Pendente':o.status}</div></div>
+                </div>;
+              })}
+            </div>
+          ) : (
+            <button type="button" className="btn-primary w-full py-3 rounded-xl font-semibold text-sm" onClick={()=>setAba('financeiro')}>Abrir financeiro detalhado</button>
+          )}
+          <button type="button" className="text-xs underline text-gray-600" onClick={onRefresh}>Atualizar informações</button>
+        </div>
+      )}
 
       {aba === 'pedidos' && (
         <>
