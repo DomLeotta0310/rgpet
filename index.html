@@ -2688,7 +2688,7 @@ const App = () => {
       setCodigoInicial(codigoParam);
     }
     if (params.get('admin') === '1') setIsAdmin(true);
-    if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Pagamento aprovado! Seus documentos foram liberados.' }); setTimeout(() => setMsgPagamento(null), 8000); }
+    if (pagamento === 'sucesso') { setMsgPagamento({ tipo: 'sucesso', texto: 'Retorno do pagamento recebido. Aguarde a confirmação do Mercado Pago para liberar os documentos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     else if (pagamento === 'falha' || pagamento === 'pendente') { setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     
     carregarDados();
