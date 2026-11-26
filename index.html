@@ -2393,10 +2393,26 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 
   return (
     <div className="mobile-container p-4">
-      <h1 className="text-xl font-bold mb-4">Painel Admin</h1>
-      <div className="flex gap-1 mb-3 border-b overflow-x-auto">
+      <div className="mb-4 rounded-2xl p-4" style={{background:'linear-gradient(135deg,#173c2e,#245640)',color:'#fff',boxShadow:'0 4px 18px rgba(23,60,46,.16)'}}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-bold uppercase" style={{letterSpacing:'1.6px',color:'#dfc482'}}>Cão Leotta • PetfiQ</div>
+            <h1 className="text-xl font-bold mt-1">Central administrativa</h1>
+            <p className="text-xs mt-1" style={{color:'#d7e6d9'}}>Acompanhe o RG Pet em um só lugar.</p>
+          </div>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{background:'rgba(255,255,255,.12)',border:'1px solid rgba(223,196,130,.65)'}}>🐾</div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        {[['visao','▦','Visão Geral'],['financeiro','💰','Financeiro'],['pedidos','🧾','Pedidos'],['pets','🐾','Pets']].map(([id,simbolo,rotulo])=>(
+          <button key={id} type="button" onClick={()=>setAba(id)} className="rounded-xl py-3 px-2 text-center text-xs font-bold" style={aba===id?{background:'#1a3c2e',color:'#fff',boxShadow:'0 2px 8px rgba(0,0,0,.1)'}:{background:'#fffefb',color:'#1a3c2e',border:'1px solid #e8dfc8'}}>
+            <div className="text-xl mb-1">{simbolo}</div>{rotulo}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-1 mb-3 border-b overflow-x-auto pb-1" style={{scrollbarWidth:'thin'}}>
         {['visao','financeiro','pedidos','precos','cupons','pets','qrfisico','usuarios'].map(t => (
-          <button key={t} onClick={()=>setAba(t)} className="px-3 py-2 text-xs font-medium whitespace-nowrap" style={aba===t?{borderBottom:'2px solid #1a3c2e', color:'#1a3c2e'}:{color:'#6b7280'}}>{t === 'visao' ? 'Visão Geral' : t === 'financeiro' ? 'Financeiro' : t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
+          <button key={t} type="button" onClick={()=>setAba(t)} aria-current={aba===t?'page':undefined} className="px-3 py-2 text-xs font-semibold whitespace-nowrap rounded-t-lg" style={aba===t?{borderBottom:'3px solid #b69550',color:'#1a3c2e',background:'#f9f2e4'}:{color:'#6b7280'}}>{t === 'visao' ? 'Visão Geral' : t === 'financeiro' ? 'Financeiro' : t === 'pedidos' ? 'Pedidos' : t === 'precos' ? 'Preços' : t === 'cupons' ? 'Cupons' : t === 'pets' ? 'Pets' : t === 'qrfisico' ? 'QR Físico' : 'Usuários'}</button>
         ))}
       </div>
 
