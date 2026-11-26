@@ -2742,7 +2742,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
         const pet=pets.find(p=>String(p.id)===String(petVisualizando.id))||petVisualizando;
         const tutor=tutores.find(t=>String(t.id)===String(pet.tutor_id));
         const Campo=({nome,valor})=><div className="py-2 border-b" style={{borderColor:'#eee3d0'}}><div className="text-[10px] uppercase tracking-wide font-bold" style={{color:'#476151'}}>{nome}</div><div className="text-sm break-words" style={{color:'#173c2e'}}>{valor===undefined||valor===null||valor===''?'Não informado':String(valor)}</div></div>;
-        return <div className="fixed inset-0 z-50 overflow-y-auto" style={{background:'rgba(14,31,24,.78)'}} role="dialog" aria-modal="true" aria-label={'Ficha de '+pet.nome}>
+        return <div className="fixed top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto" style={{background:'rgba(14,31,24,.78)'}} role="dialog" aria-modal="true" aria-label={'Ficha de '+pet.nome}>
           <div className="mobile-container p-3 sm:p-5 my-3">
             <div className="rounded-2xl overflow-hidden" style={{background:'#fffaf0',border:'2px solid #bb9853'}}>
               <div className="flex justify-between items-center p-4" style={{background:'#173c2e',color:'#fff'}}>
