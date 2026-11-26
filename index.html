@@ -1616,6 +1616,9 @@ const PreviewScreen = ({ onBack }) => {
             <div className="font-bold text-sm">R$ {calcular(settings.price_combo1).toFixed(2)}</div>
           </div>
         </div>
+<div className="text-xs rounded-xl p-3 mt-3" style={{background:'#f0fdf4',border:'1px solid #bbf7d0',color:'#166534'}}>
+                  <strong>Pix no Mercado Pago:</strong> escolha Pix no checkout. Se aparecer um QR Code, você pode escaneá-lo com outro celular e uma conta bancária de outro titular. O código Pix Copia e Cola também pode estar disponível. Os documentos são liberados após a confirmação.
+                </div>
         <button onClick={comprar} disabled={processando} className="btn-primary w-full py-3 rounded-xl font-semibold mt-2">
           {processando ? 'Aguarde...' : `💰 Comprar — R$ ${calcular(settings.price_combo1).toFixed(2)}`}
         </button>
@@ -1767,6 +1770,10 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
                     </div>
                   </div>
                 </div>
+<div className="text-xs rounded-xl p-3 mt-3" style={{background:'#f0fdf4',border:'1px solid #bbf7d0',color:'#166534'}}>
+                  <strong>Pix no Mercado Pago:</strong> escolha Pix no checkout. Se aparecer um QR Code, você pode escaneá-lo com outro celular e uma conta bancária de outro titular. O código Pix Copia e Cola também pode estar disponível. Os documentos são liberados após a confirmação.
+                </div>
+                <button type="button" onClick={onRefresh} className="text-sm font-semibold mt-3 w-full py-2 rounded-lg" style={{background:'#f3f4f6',color:'#1a3c2e'}}>↻ Verificar confirmação do pagamento</button>
                 <div className="text-xs text-gray-500 mt-3 p-2 rounded-lg" style={{backgroundColor:'#faf6ec'}}>Modo: <strong>{settings.payment_mode === 'auto' ? 'Automático' : 'Manual'}</strong></div>
               </div>
               {pedidosPet.length > 0 && (
@@ -2640,7 +2647,7 @@ const App = () => {
     const pagamento = params.get('pagamento');
     const codigoParam = params.get('codigo');
     
-    if (p) setPublicId(p);
+    if (p && !pagamento) setPublicId(p);
     if (codigoParam) {
       setCodigoInicial(codigoParam);
     }
@@ -2649,6 +2656,8 @@ const App = () => {
     else if (pagamento === 'falha' || pagamento === 'pendente') { setMsgPagamento({ tipo: 'aviso', texto: 'O pagamento ainda não foi confirmado. Se você já pagou, aguarde alguns segundos.' }); setTimeout(() => setMsgPagamento(null), 8000); }
     
     carregarDados();
+    const atualizarAoVoltar = () => { if (document.visibilityState === 'visible') carregarDados(); };
+    document.addEventListener('visibilitychange', atualizarAoVoltar);
     const saved = localStorage.getItem('rgpet_sessao');
     if (saved) {
       try {
