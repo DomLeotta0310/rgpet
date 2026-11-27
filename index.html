@@ -2800,7 +2800,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
                 </div>
                 <div className="flex gap-2">
                   <button type="button" onClick={()=>setPetVisualizando(null)} className="btn-primary flex-1 rounded-xl py-3 text-sm font-bold">Fechar ficha</button>
-                  {pet.public_id && <a href={'/?pet='+encodeURIComponent(pet.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 text-center rounded-xl py-3 text-sm font-bold" style={{color:'#173c2e',background:'#e9d6a8'}}>Ficha pública ↗</a>}
+                  {pet.public_id && <a href={'https://rgpet.vercel.app/?pet='+encodeURIComponent(pet.public_id)} target="_blank" rel="noopener noreferrer" className="flex-1 text-center rounded-xl py-3 text-sm font-bold" style={{color:'#173c2e',background:'#e9d6a8'}}>Ficha pública ↗</a>}
                 </div>
                 <p className="text-xs text-gray-500 text-center">Consulta administrativa. Nenhuma informação será alterada.</p>
               </div>
@@ -2912,6 +2912,7 @@ const App = () => {
   
   const handleUsarSenha = () => { localStorage.removeItem('rgpet_sessao'); setNeedPin(false); setUser(null); setPinUser(null); setView('login'); };
 
+  if (publicId) return <PublicPetView publicId={publicId} />;
   if (adminAppMode) {
     if (!user) return <LoginScreen adminOnly={true} onLogin={handleLogin} initialRegister={false} onBackToLanding={()=>{}} />;
     return <div className="min-h-screen admin-app-content" style={{background:'#f8f0e4'}}>
@@ -2927,7 +2928,6 @@ const App = () => {
       <AdminPanel user={user} pets={pets} orders={orders} coupons={coupons} settings={settings} onRefresh={carregarDados}/>
     </div>;
   }
-  if (publicId) return <PublicPetView publicId={publicId} />;
   if (needPin && !user && pinUser) return <PinScreen user={pinUser} onUnlock={handleUnlockPin} onUsarSenha={handleUsarSenha} />;
   if (!user) {
     if (view === 'landing') return <LandingPage onLoginClick={()=>{setRegisterMode(false);setView('login');}} onRegisterClick={()=>{setRegisterMode(true);setView('login');}} />;
