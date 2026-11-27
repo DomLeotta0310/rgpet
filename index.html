@@ -378,10 +378,11 @@
 .pub-saude-linha:last-child { border:0; }
 .pub-saude-linha strong { color:#0c4c2a; }
 .pub-vazio { color:#655b47; font-size:13px; }
-.pub-acoes { display:flex; gap:10px; padding:12px; }
-.pub-acoes a { flex:1; min-width:0; padding:13px 9px; border-radius:10px; color:white; font-size:13px; font-weight:800; text-align:center; text-decoration:none; }
-.pub-ligar { background:#0b4a28; }
-.pub-whatsapp { background:#18c963; }
+.pub-acoes { display:flex; flex-direction:column; gap:9px; padding:12px; }
+.pub-acoes a { display:block; min-width:0; padding:13px 9px; border-radius:10px; font-size:14px; font-weight:800; text-align:center; text-decoration:none; }
+.pub-acoes .pub-whatsapp { background:#18c963; color:#073e21; border:2px solid #119648; font-size:17px; padding:16px 10px; box-shadow:0 3px 10px rgba(12,91,46,.15); }
+.pub-acoes .pub-ligar { background:#fffefb; color:#0b4a28; border:1px solid #0b4a28; }
+.pub-acoes .pub-contato-tutor { display:block; color:#0c4c2a; text-align:center; font-size:13px; font-weight:700; line-height:1.4; }
 .pub-secundario { border:1px solid #c99b3c; margin:0 12px 12px; border-radius:10px; padding:12px; display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; font-size:12px; }
 .pub-secundario strong { color:#1d5636; }
 .pub-secundario a { color:#0c512b; text-decoration:underline; font-weight:800; }
@@ -394,7 +395,7 @@
 .pub-rodape-apoio p { font-size:13px; line-height:1.45; margin:6px 0; }
 .pub-rodape-apoio .pub-apoio-chamada { font-weight:650; }
 .pub-rodape-apoio .pub-apoio-numero { font-size:15px; font-weight:800; margin:10px 0; }
-.pub-rodape-apoio .pub-apoio-botao { display:block; width:100%; max-width:370px; margin:12px auto 2px; padding:13px 12px; border-radius:11px; color:white; background:#0b4a28; font-size:14px; font-weight:800; text-align:center; text-decoration:none; }
+.pub-rodape-apoio .pub-apoio-botao { display:block; width:100%; max-width:370px; margin:12px auto 2px; padding:11px 12px; border-radius:11px; color:#0b4a28; background:#fffefb; border:1px solid #0b4a28; font-size:13px; font-weight:700; text-align:center; text-decoration:none; }
 .pub-rodape-apoio .pub-apoio-botao:focus-visible { outline:3px solid #c99b3c; outline-offset:3px; }
 
 @media(max-width:480px) {
@@ -1949,10 +1950,12 @@ const PublicPetView = ({ publicId }) => {
         <div className="pub-saude">{temSaude ? saudeCampos.filter(([k,v])=>Boolean(v)).map(([label,valor])=><div className="pub-saude-linha" key={label}><strong>{label}:</strong><span>{valor}</span></div>) : <p className="pub-vazio">Nenhuma informação de saúde cadastrada.</p>}</div>
       </section>
       <section className="pub-secao">
-        <h2 className="pub-faixa">☎ CONTATO DE EMERGÊNCIA</h2>
+        <h2 className="pub-faixa">☎ CONTATO DE EMERGÊNCIA — TUTOR</h2>
         <div className="pub-acoes">
+          <p className="pub-contato-tutor">Encontrou este pet? Entre em contato diretamente com o tutor.</p>
+          {whatsapp && <a href={'https://wa.me/'+numeroWhatsapp+'?text='+encodeURIComponent('Olá! Encontrei a identificação do pet '+pet.nome+' no PetfiQ e gostaria de falar com o tutor.')} target="_blank" rel="noopener noreferrer" className="pub-whatsapp">💬 Chamar tutor no WhatsApp</a>}
           {telefone && <a href={'tel:+'+telefone} className="pub-ligar">☎ Ligar para o tutor</a>}
-          {whatsapp && <a href={'https://wa.me/'+numeroWhatsapp} target="_blank" rel="noopener noreferrer" className="pub-whatsapp">💬 Chamar no WhatsApp</a>}
+          {!whatsapp && !telefone && <p className="pub-contato-tutor">O tutor ainda não informou um telefone de contato.</p>}
         </div>
         {(emerg.nome || emerg.telefone) && <div className="pub-secundario">
           <strong>CONTATO SECUNDÁRIO</strong>
@@ -1965,10 +1968,10 @@ const PublicPetView = ({ publicId }) => {
         <span>Registro digital do seu melhor amigo.</span>
         <div className="pub-rodape-apoio">
           <h2>🐾 CÃO LEOTTA — APOIO E ATENDIMENTO</h2>
-          <p className="pub-apoio-chamada">Encontrou este pet e não conseguiu falar com o tutor? Ou gostou do PetfiQ e quer adquirir o seu?</p>
-          <p>Fale com nossa equipe pelo WhatsApp!</p>
+          <p className="pub-apoio-chamada">Não conseguiu falar com o tutor? O Cão Leotta pode ajudar. Gostou do PetfiQ e quer adquirir o seu? Fale com nossa equipe.</p>
+          <p>Telefone de apoio e atendimento:</p>
           <p className="pub-apoio-numero">📱 +55 11 94383-3520</p>
-          <a className="pub-apoio-botao" href={'https://wa.me/5511943833520?text='+encodeURIComponent('Olá! Vi a identificação digital PetfiQ e gostaria de falar com a equipe do Cão Leotta.')} target="_blank" rel="noopener noreferrer">💬 Falar com o Cão Leotta</a>
+          <a className="pub-apoio-botao" href={'https://wa.me/5511943833520?text='+encodeURIComponent('Olá! Vi a identificação digital PetfiQ e gostaria de falar com a equipe do Cão Leotta.')} target="_blank" rel="noopener noreferrer">💬 Atendimento Cão Leotta (apoio)</a>
         </div>
       </footer>
     </article>
