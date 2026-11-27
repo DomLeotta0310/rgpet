@@ -7,7 +7,7 @@
 <link rel="manifest" id="petfiq-manifest" href="/manifest.json?v=2">
 <script>
 (function(){
-  if (new URLSearchParams(location.search).get('adm_app') !== '1') return;
+  if (!(location.pathname === '/adm' || location.pathname.startsWith('/adm/') || new URLSearchParams(location.search).get('adm_app') === '1')) return;
   document.title='PetfiQ ADM — Cão Leotta';
   document.getElementById('petfiq-manifest').href='/manifest-admin.json?v=1';
   document.addEventListener('DOMContentLoaded',()=>{const meta=document.querySelector('meta[name="theme-color"]');if(meta) meta.content='#422719';});
@@ -2813,7 +2813,7 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 };
 
 const App = () => {
-  const adminAppMode = new URLSearchParams(window.location.search).get('adm_app') === '1';
+  const adminAppMode = (window.location.pathname === '/adm' || window.location.pathname.startsWith('/adm/') || new URLSearchParams(window.location.search).get('adm_app') === '1');
   const [user, setUser] = useState(null);
   const [view, setView] = useState(adminAppMode ? 'login' : 'landing');
   const [pets, setPets] = useState([]);
