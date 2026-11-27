@@ -935,13 +935,11 @@ const PainelPetsPerdidos = ({ pets, user, onRefresh }) => {
     if (onRefresh) await onRefresh();
   };
   const compartilhar = async p => {
-    const url = 'https://rgpet.vercel.app/api/pet-share?pet='+encodeURIComponent(p.public_id);
-    const titulo = p.is_lost ? 'Pet desaparecido: '+p.nome : p.nome+' voltou ao lar!';
-    try {
-      if (navigator.share) await navigator.share({title:titulo,text:titulo,url});
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(titulo+' '+url); alert('Link copiado!'); }
-      else window.prompt('Copie o link para compartilhar:',url);
-    } catch(err) { if (err.name !== 'AbortError') window.prompt('Copie o link:',url); }
+    const url = urlCompartilharPet(p);
+    const titulo = p.is_lost ? 'Ajude a encontrar '+p.nome+' — PetfiQ' : p.nome+' voltou ao lar! — PetfiQ';
+    const mensagem = p.is_lost ? textoIndividualPerdido(p) : '🏠 '+p.nome+' voltou para casa! 🐾\nObrigado a todos que ajudaram. ❤️';
+    const resultado = await compartilharPetfiQ(titulo,url,mensagem);
+    if (resultado==='copiado') alert('Link copiado para compartilhar!');
   };
   return <main className="mobile-container p-4">
     <h1 className="text-xl font-bold mb-1" style={{color:'#1a3c2e'}}>🐾 Pets Perdidos e Voltou ao Lar</h1>
@@ -1900,12 +1898,12 @@ const compartilharPetfiQ = async (titulo, url, mensagem='') => {
   try { await navigator.clipboard.writeText(texto); return 'copiado'; }
   catch (erro) { window.prompt('Copie o link para compartilhar:',url); return 'manual'; }
 };
-const textoColetivoPerdidos = '🚨 PETS DESAPARECIDOS — PETFIQ 🐾\nVários animais estão longe de suas famílias e precisam da nossa ajuda!\n🐶🐱 Conheça os pets desaparecidos, veja suas fotos e consulte as fichas públicas.\n📍 Talvez algum deles esteja perto de você.\n❤️ Um compartilhamento pode ajudar uma família a reencontrar seu melhor amigo.\nPetfiQ • Cão Leotta';
+const textoColetivoPerdidos = '🚨 Pets perdidos no PetfiQ 🐾\nVeja as fotos, conheça os animais desaparecidos e ajude a divulgar. ❤️';
 const urlCompartilharMural = 'https://rgpet.vercel.app/api/perdidos-share';
 const urlCompartilharPet = pet => 'https://rgpet.vercel.app/api/pet-share?pet='+encodeURIComponent(pet.public_id);
 const textoIndividualPerdido = pet => {
   const local=[pet.bairro_desaparecimento,pet.cidade_desaparecimento,pet.uf_desaparecimento].filter(Boolean).join(', ');
-  return '🚨 AJUDE A ENCONTRAR '+pet.nome+'! 🐾\nEste pet está desaparecido e sua família está à procura dele.'+(local?'\n📍 Última região informada: '+local:'')+'\n🙏 Viu este animal? Abra a ficha para falar diretamente com o tutor.\n❤️ Compartilhe! Sua ajuda pode trazer esse pet de volta para casa.\nPetfiQ • Cão Leotta';
+  return '🚨 Ajude a encontrar '+pet.nome+'! 🐾'+(local?'\n📍 '+local:'')+'\nViu este pet? Abra a ficha e fale com o tutor. Compartilhe! ❤️';
 };
 
 const MuralPublicoPerdidos = () => {
