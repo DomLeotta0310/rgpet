@@ -1,0 +1,31 @@
+{
+  "id": "/",
+  "name": "PetfiQ ADM — Cão Leotta",
+  "short_name": "PetfiQ ADM",
+  "description": "Administração do RG Pet",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f0e4",
+  "theme_color": "#422719",
+  "icons": [
+    {
+      "src": "/petfiq-admin-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/rg-petfiq-gold-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/rg-petfiq-gold-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
