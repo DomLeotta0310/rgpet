@@ -1891,14 +1891,21 @@ const PetDetail = ({ user, pet, orders, coupons, settings, onRefresh, onBack, on
 
 
 // Compartilhamento individual/coletivo com opção de copiar link em navegadores sem Share.
-const compartilharPetfiQ = async (titulo, url) => {
-  const texto = titulo + '\n' + url;
+const compartilharPetfiQ = async (titulo, url, mensagem='') => {
+  const texto = (mensagem || titulo) + '\n' + url;
   if (navigator.share) {
-    try { await navigator.share({title:titulo,text:titulo,url}); return 'compartilhado'; }
+    try { await navigator.share({title:titulo,text:mensagem || titulo,url}); return 'compartilhado'; }
     catch (erro) { if (erro && erro.name === 'AbortError') return 'cancelado'; }
   }
   try { await navigator.clipboard.writeText(texto); return 'copiado'; }
   catch (erro) { window.prompt('Copie o link para compartilhar:',url); return 'manual'; }
+};
+const textoColetivoPerdidos = '🚨 PETS DESAPARECIDOS — PETFIQ 🐾\nVários animais estão longe de suas famílias e precisam da nossa ajuda!\n🐶🐱 Conheça os pets desaparecidos, veja suas fotos e consulte as fichas públicas.\n📍 Talvez algum deles esteja perto de você.\n❤️ Um compartilhamento pode ajudar uma família a reencontrar seu melhor amigo.\nPetfiQ • Cão Leotta';
+const urlCompartilharMural = 'https://rgpet.vercel.app/api/perdidos-share';
+const urlCompartilharPet = pet => 'https://rgpet.vercel.app/api/pet-share?pet='+encodeURIComponent(pet.public_id);
+const textoIndividualPerdido = pet => {
+  const local=[pet.bairro_desaparecimento,pet.cidade_desaparecimento,pet.uf_desaparecimento].filter(Boolean).join(', ');
+  return '🚨 AJUDE A ENCONTRAR '+pet.nome+'! 🐾\nEste pet está desaparecido e sua família está à procura dele.'+(local?'\n📍 Última região informada: '+local:'')+'\n🙏 Viu este animal? Abra a ficha para falar diretamente com o tutor.\n❤️ Compartilhe! Sua ajuda pode trazer esse pet de volta para casa.\nPetfiQ • Cão Leotta';
 };
 
 const MuralPublicoPerdidos = () => {
@@ -1906,9 +1913,8 @@ const MuralPublicoPerdidos = () => {
   const [carregando,setCarregando] = useState(true);
   const [erro,setErro] = useState('');
   const [aviso,setAviso] = useState('');
-  const urlMural = 'https://rgpet.vercel.app/?perdidos=1';
-  const compartilhar = async (titulo,url) => {
-    const resultado=await compartilharPetfiQ(titulo,url);
+  const compartilhar = async (titulo,url,mensagem) => {
+    const resultado=await compartilharPetfiQ(titulo,url,mensagem);
     if(resultado==='copiado') setAviso('Link copiado! Envie para seus contatos ou grupos.');
   };
   useEffect(()=>{
@@ -1933,7 +1939,7 @@ const MuralPublicoPerdidos = () => {
         <h1>⚠ Pets perdidos no PetfiQ</h1>
         <p>Conheça os pets desaparecidos e ajude a divulgar para que eles possam voltar para casa.</p>
       </header>
-      <button className="perdidos-publicos-share" type="button" onClick={()=>compartilhar('Ajude a encontrar os pets perdidos no PetfiQ',urlMural)}>↗ Compartilhar página</button>
+      <button className="perdidos-publicos-share" type="button" onClick={()=>compartilhar('PETS DESAPARECIDOS — PETFIQ',urlCompartilharMural,textoColetivoPerdidos)}>↗ Compartilhar página</button>
       {aviso&&<p role="status" style={{textAlign:'center',fontSize:13,color:'#0c512b',marginBottom:12}}>{aviso}</p>}
       <div className="perdidos-publicos-faixa">🐾 PETS DESAPARECIDOS <span>{carregando?'Carregando':petsPerdidos.length+' pets'}</span></div>
       {carregando?<div className="p-6 text-center">Carregando pets desaparecidos...</div>:
@@ -1942,6 +1948,7 @@ const MuralPublicoPerdidos = () => {
         <div className="perdidos-publicos-lista">
           {petsPerdidos.map(p=>{
             const url='https://rgpet.vercel.app/?pet='+encodeURIComponent(p.public_id);
+            const urlShare=urlCompartilharPet(p);
             const local=[p.bairro_desaparecimento,p.cidade_desaparecimento,p.uf_desaparecimento].filter(Boolean).join(' • ');
             return <article className="perdidos-publicos-card" key={p.id}>
               {p.foto?<img className="perdidos-publicos-foto" src={p.foto} alt={'Foto de '+p.nome}/>:
@@ -1954,7 +1961,7 @@ const MuralPublicoPerdidos = () => {
               </div>
               <div className="perdidos-publicos-botoes">
                 <a href={url}>▤ Ver ficha pública</a>
-                <button type="button" onClick={()=>compartilhar('Ajude a encontrar '+p.nome+' — PetfiQ',url)}>↗ Compartilhar</button>
+                <button type="button" onClick={()=>compartilhar('Ajude a encontrar '+p.nome+' — PetfiQ',urlShare,textoIndividualPerdido(p))}>↗ Compartilhar</button>
               </div>
             </article>;
           })}
@@ -1962,7 +1969,7 @@ const MuralPublicoPerdidos = () => {
       <section className="perdidos-publicos-final">
         <h2>📣 Ajude a divulgar os pets desaparecidos</h2>
         <p>Compartilhe esta página com amigos, familiares e grupos da sua região e aumente as chances de reencontro.</p>
-        <button type="button" className="perdidos-publicos-share" onClick={()=>compartilhar('Ajude a encontrar os pets perdidos no PetfiQ',urlMural)}>↗ Compartilhar esta página</button>
+        <button type="button" className="perdidos-publicos-share" onClick={()=>compartilhar('PETS DESAPARECIDOS — PETFIQ',urlCompartilharMural,textoColetivoPerdidos)}>↗ Compartilhar esta página</button>
       </section>
     </div>
   </main>;
@@ -2035,7 +2042,7 @@ const PublicPetView = ({ publicId }) => {
   const qrMural = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='+encodeURIComponent(urlMural);
   return <main className="pub-background">
     <div className="pub-compartilhar-controles">
-      <button type="button" onClick={()=>compartilharPetfiQ('Ficha pública de '+pet.nome+' — PetfiQ',urlPublica)}>↗ Compartilhar ficha deste pet</button>
+      <button type="button" onClick={()=>compartilharPetfiQ('Ajude a encontrar '+pet.nome+' — PetfiQ',urlCompartilharPet(pet),textoIndividualPerdido(pet))}>↗ Compartilhar ficha deste pet</button>
     </div>
     <div className="pub-imprimir-controle">
       <button type="button" onClick={()=>window.print()} className="pub-imprimir-botao">🖨️ Imprimir ficha pública</button>
@@ -2745,6 +2752,13 @@ const AdminPanel = ({ user, pets, orders, coupons, settings, onRefresh }) => {
 
       {aba === 'pets' && (
         <div className="space-y-2">
+          <div className="card">
+            <div className="font-bold text-sm mb-3">Divulgação dos pets desaparecidos</div>
+            <div className="flex gap-2 flex-wrap">
+              <a href="https://rgpet.vercel.app/?perdidos=1" target="_blank" rel="noopener noreferrer" className="flex-1 text-center rounded-xl px-3 py-3 font-bold text-sm" style={{background:'#fffaf0',color:'#173c2e',border:'1px solid #b69a57',minWidth:155}}>🐾 Página pública de perdidos ↗</a>
+              <button type="button" onClick={async()=>{const r=await compartilharPetfiQ('PETS DESAPARECIDOS — PETFIQ',urlCompartilharMural,textoColetivoPerdidos);if(r==='copiado')alert('Link copiado para compartilhar!');}} className="flex-1 rounded-xl px-3 py-3 font-bold text-sm" style={{background:'#087436',color:'#fff',minWidth:155}}>↗ Compartilhar página</button>
+            </div>
+          </div>
           <div className="card">
             <div className="font-bold text-sm mb-2">Filtrar pets</div>
             <div className="flex gap-2 flex-wrap">
