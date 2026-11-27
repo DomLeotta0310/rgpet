@@ -1,10 +1,10 @@
 {
-  "id": "/petfiq-admin",
+  "id": "/adm/",
   "name": "PetfiQ ADM — Cão Leotta",
   "short_name": "PetfiQ ADM",
   "description": "Painel administrativo do RG Pet",
-  "start_url": "/?adm_app=1",
-  "scope": "/",
+  "start_url": "/adm/",
+  "scope": "/adm/",
   "display": "standalone",
   "background_color": "#f8f0e4",
   "theme_color": "#422719",
